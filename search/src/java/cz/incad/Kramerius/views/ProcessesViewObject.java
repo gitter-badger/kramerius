@@ -668,7 +668,7 @@ public class ProcessesViewObject implements Initializable {
                     return this.filter.getFormattedValue(tripple);
                 }
             }
-        }
+        } 
         return "";
     }
 
@@ -678,6 +678,18 @@ public class ProcessesViewObject implements Initializable {
             for (Tripple tripple : tripples) {
                 if (tripple.getName().equals("name")
                         && tripple.getOp().equals(SQLFilter.Op.LIKE)) {
+                    return this.filter.getFormattedValue(tripple);
+                }
+            }
+        }
+        return "";
+    }
+
+    public String getLoginNameLike() {
+        if (this.filter != null) {
+            List<Tripple> tripples = this.filter.getTripples();
+            for (Tripple tripple : tripples) {
+                if (tripple.getName().equals("loginname") && tripple.getOp().equals(LRPRocessFilter.Op.LIKE)) {
                     return this.filter.getFormattedValue(tripple);
                 }
             }
