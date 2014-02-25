@@ -1,0 +1,18 @@
+<VirtualHost *:80>
+RewriteEngine On
+RewriteRule  ^/$ /search/ [R]
+RewriteRule  ^/search$ /search/ [R]
+RewriteRule  ^/solr$ /solr/ [R]
+RewriteRule  ^/fedora$ /fedora/ [R]
+RewriteRule  ^/kramerius$ /kramerius/ [R]
+RewriteRule  ^/rightseditor$ /rightseditor/ [R]
+
+<IfModule jk_module>
+        JkMount /search/* search
+        JkMount /solr/* solr
+        JkMount /fedora/* fedora
+        JkMount /kramerius/* kramerius
+        JkMount /rightseditor/* rightseditor
+</IfModule>
+
+</VirtualHost>
