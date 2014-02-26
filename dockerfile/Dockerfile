@@ -69,6 +69,9 @@ RUN a2enmod rewrite && a2enmod jk
 ADD workers.properties /etc/libapache2-mod-jk/workers.properties
 ADD kramerius-site /etc/apache2/sites-enabled/000-default
 
+RUN apt-get -y install curl
+ADD fedoraIngestModels.sh /fedoraIngestModels.sh
+RUN /etc/init.d/postgresql start && su -l kramerius -c "/home/kramerius/apache-tomcat-7.0.52/bin/startup.sh" && sleep 90 && /fedoraIngestModels.sh
 
 EXPOSE 80
 ENTRYPOINT /etc/init.d/postgresql start && /etc/init.d/apache2 start && su -l kramerius -c "/home/kramerius/apache-tomcat-7.0.52/bin/startup.sh" && /bin/bash
