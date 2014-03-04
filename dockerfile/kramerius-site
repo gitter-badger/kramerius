@@ -34,7 +34,7 @@ alias /imageserver/ /kramerius-data/imageserver/
                 FcgidInitialEnv MAX_IMAGE_CACHE_SIZE "10"
                 FcgidInitialEnv JPEG_QUALITY "50"
                 FcgidInitialEnv MAX_CVT "3000"
-                FcgidInitialEnv FILESYSTEM_PREFIX "/data/imageserver/"
+                FcgidInitialEnv FILESYSTEM_PREFIX "/kramerius-data/imageserver/"
                 #FcgidInitialEnv WATERMARK "/var/www/localhost/mzk.tif"
                 #FcgidInitialEnv WATERMARK_PROBABILITY "1"
                 #FcgidInitialEnv WATERMARK_OPACITY "0.5"

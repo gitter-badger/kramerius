@@ -71,11 +71,15 @@ ADD kramerius-site /etc/apache2/sites-enabled/000-default
 ADD fedoraIngestModels.sh /fedoraIngestModels.sh
 RUN /etc/init.d/postgresql start && su -l kramerius -c "/home/kramerius/apache-tomcat-7.0.52/bin/startup.sh" && sleep 90 && /fedoraIngestModels.sh
 
-ADD initData.sh /initData.sh
-
-RUN apt-get -y install libfcgi0ldbl libjpeg62 libmemcached10 libtiff4 libapache2-mod-fcgid
+RUN apt-get -y install libfcgi0ldbl libjpeg62 libmemcached10 libtiff4 libapache2-mod-fcgid 
 RUN wget --no-verbose https://dl.dropbox.com/s/7k24kkvqf1pafec/iipimage-jp2-amd64.deb -O /tmp/iipimage-jp2-amd64.deb
 RUN dpkg -i /tmp/iipimage-jp2-amd64.deb 
+
+#RUN wget --no-verbose https://dl.dropbox.com/s/btq5weptyfr7yyy/000329646.zip -O /tmp/000329646.zip 
+RUN wget --no-verbose https://dl.dropbox.com/s/1up0t5zmwftrggj/530719f5-ee95-4449-8ce7-12b0f4cadb22.zip -O /tmp/530719f5-ee95-4449-8ce7-12b0f4cadb22.zip 
+
+ADD migration.properties /home/kramerius/.kramerius4/migration.properties
+ADD initData.sh /initData.sh
 
 EXPOSE 80
 ENTRYPOINT /initData.sh && /etc/init.d/postgresql start && /etc/init.d/apache2 start && su -l kramerius -c "/home/kramerius/apache-tomcat-7.0.52/bin/startup.sh" && /bin/bash
