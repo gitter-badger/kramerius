@@ -81,5 +81,8 @@ RUN wget --no-verbose https://dl.dropbox.com/s/1up0t5zmwftrggj/530719f5-ee95-444
 ADD migration.properties /home/kramerius/.kramerius4/migration.properties
 ADD initData.sh /initData.sh
 
-EXPOSE 80
+RUN sed "s/data_directory = '\/var\/lib\/postgresql\/9.1\/main'/data_directory = '\/kramerius-data\/postgres-data\/main'/" /etc/postgresql/9.1/main/postgresql.conf > /tmp/postgresql.conf
+RUN mv /tmp/postgresql.conf /etc/postgresql/9.1/main/postgresql.conf
+RUN mv /home/kramerius/fedora/data /home/kramerius/fedora/dataDefault && ln -s  /kramerius-data/fedora-data /home/kramerius/fedora/data 
+
 ENTRYPOINT /initData.sh && /etc/init.d/postgresql start && /etc/init.d/apache2 start && su -l kramerius -c "/home/kramerius/apache-tomcat-7.0.52/bin/startup.sh" && /bin/bash
