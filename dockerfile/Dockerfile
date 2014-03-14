@@ -8,7 +8,7 @@ RUN apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2
 
 # download binaries
 RUN wget --no-verbose http://mirror.hosting90.cz/apache/tomcat/tomcat-7/v7.0.52/bin/apache-tomcat-7.0.52.tar.gz -O /tmp/tomcat.tar.gz && \
-    wget --no-verbose http://downloads.sourceforge.net/project/fedora-commons/fedora/3.6.1/fcrepo-installer-3.6.1.jar?r=\&ts=1393867971\&use_mirror=netcologne -O /tmp/fedora-install.jar && \
+    wget --no-verbose http://downloads.sourceforge.net/fedora-commons/fcrepo-installer-3.6.2.jar -O /tmp/fedora-install.jar && \
     wget --no-verbose https://kramerius.googlecode.com/files/Kramerius-4.8.3.zip  -O /tmp/kramerius.zip && \
     wget --no-verbose https://kramerius.googlecode.com/files/installation-4.8.zip -O /tmp/installation-4.8.zip
 
