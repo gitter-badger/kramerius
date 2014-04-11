@@ -42,6 +42,7 @@ USER root
 RUN /etc/init.d/postgresql start && su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && sleep 360
 
 # fedora config - alias and resource index
+USER kramerius
 ADD changeFedoraSettings.sh /changeFedoraSettings.sh
 RUN /changeFedoraSettings.sh && \
     mv fedora.fcfg $FEDORA_HOME/server/config/fedora.fcfg && rm /changeFedoraSettings.sh && \
@@ -52,11 +53,11 @@ RUN /changeFedoraSettings.sh && \
 ADD context.xml /home/kramerius/tomcat/conf/context.xml
 
 # JAAS
-ADD jaas.conf /jaas.conf
-RUN cat /jaas.conf >> /home/kramerius/fedora/server/config/jaas.conf && rm /jaas.conf
+ADD jaas.conf /home/kramerius/fedora/server/config/jaas.conf
 ENV JAAS_CONFIG /home/kramerius/fedora/server/config/jaas.conf
 
 # SOLR
+USER root
 RUN mkdir /tmp/kramerius-instalaltion && unzip /tmp/installation-4.8.zip -d /tmp/
 USER kramerius
 RUN cp /tmp/installation-4.8/solr.war /home/kramerius/tomcat/webapps/solr.war && \
@@ -79,6 +80,7 @@ RUN wget --no-verbose https://dl.dropbox.com/s/7k24kkvqf1pafec/iipimage-jp2-amd6
 RUN dpkg -i /tmp/iipimage-jp2-amd64.deb 
 
 ADD migration.properties /home/kramerius/.kramerius4/migration.properties
+ADD configuration.properties /home/kramerius/.kramerius4/configuration.properties
 ADD initData.sh /initData.sh
 ADD parser.sh /parser.sh
 
