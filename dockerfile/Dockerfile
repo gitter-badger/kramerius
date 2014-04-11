@@ -7,7 +7,7 @@ RUN apt-get -y  update
 RUN apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod-jk vim unzip xmlstarlet curl
 
 # download binaries
-wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.53/bin/apache-tomcat-7.0.53.tar.gz -O /tmp/tomcat.tar.gz && \
+RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.53/bin/apache-tomcat-7.0.53.tar.gz -O /tmp/tomcat.tar.gz && \
     wget --no-verbose http://downloads.sourceforge.net/fedora-commons/fcrepo-installer-3.6.2.jar -O /tmp/fedora-install.jar && \
     wget --no-verbose https://kramerius.googlecode.com/files/Kramerius-4.8.3.zip  -O /tmp/kramerius.zip && \
     wget --no-verbose https://kramerius.googlecode.com/files/installation-4.8.zip -O /tmp/installation-4.8.zip
@@ -48,6 +48,9 @@ RUN /changeFedoraSettings.sh && \
     rm $FEDORA_HOME/data/fedora-xacml-policies/repository-policies/default/deny-apim-if-not-localhost.xml && \
     rm $FEDORA_HOME/data/fedora-xacml-policies/repository-policies/default/deny-unallowed-file-resolution.xml
 
+# context datasource
+ADD context.xml /home/kramerius/tomcat/conf/context.xml
+
 # JAAS
 ADD jaas.conf /jaas.conf
 RUN cat /jaas.conf >> /home/kramerius/fedora/server/config/jaas.conf && rm /jaas.conf
@@ -75,14 +78,14 @@ RUN apt-get -y install libfcgi0ldbl libjpeg62 libmemcached10 libtiff4 libapache2
 RUN wget --no-verbose https://dl.dropbox.com/s/7k24kkvqf1pafec/iipimage-jp2-amd64.deb -O /tmp/iipimage-jp2-amd64.deb
 RUN dpkg -i /tmp/iipimage-jp2-amd64.deb 
 
-#RUN wget --no-verbose https://dl.dropbox.com/s/btq5weptyfr7yyy/000329646.zip -O /tmp/000329646.zip 
-RUN wget --no-verbose https://dl.dropbox.com/s/1up0t5zmwftrggj/530719f5-ee95-4449-8ce7-12b0f4cadb22.zip -O /tmp/530719f5-ee95-4449-8ce7-12b0f4cadb22.zip 
-
 ADD migration.properties /home/kramerius/.kramerius4/migration.properties
 ADD initData.sh /initData.sh
+ADD parser.sh /parser.sh
 
 RUN sed "s/data_directory = '\/var\/lib\/postgresql\/9.1\/main'/data_directory = '\/kramerius-data\/postgres-data\/main'/" /etc/postgresql/9.1/main/postgresql.conf > /tmp/postgresql.conf
 RUN mv /tmp/postgresql.conf /etc/postgresql/9.1/main/postgresql.conf
 RUN mv /home/kramerius/fedora/data /home/kramerius/fedora/dataDefault && ln -s  /kramerius-data/fedora-data /home/kramerius/fedora/data 
+RUN mv /home/kramerius/.kramerius4 /home/kramerius/.kramerius4Default && ln -s /kramerius-data/.kramerius4 /home/kramerius/.kramerius4
+
 
 ENTRYPOINT /initData.sh && /etc/init.d/postgresql start && /etc/init.d/apache2 start && su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && /bin/bash
