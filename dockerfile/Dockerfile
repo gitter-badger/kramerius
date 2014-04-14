@@ -1,10 +1,12 @@
-FROM debian
+FROM debian:wheezy
 
 MAINTAINER Martin Rumanek <martin@rumanek.cz>
 
 # install packages
+ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
+ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -y  update
-RUN apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod-jk vim unzip xmlstarlet curl
+RUN apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod-jk vim unzip xmlstarlet curl less
 
 # download binaries
 RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.53/bin/apache-tomcat-7.0.53.tar.gz -O /tmp/tomcat.tar.gz && \
@@ -41,11 +43,13 @@ RUN mkdir /tmp/kramerius; unzip /tmp/kramerius.zip -d /tmp/kramerius/ && \
 USER root
 RUN /etc/init.d/postgresql start && su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && sleep 360
 
+RUN sleep 1
+
 # fedora config - alias and resource index
 USER kramerius
-ADD changeFedoraSettings.sh /changeFedoraSettings.sh
-RUN /changeFedoraSettings.sh && \
-    mv fedora.fcfg $FEDORA_HOME/server/config/fedora.fcfg && rm /changeFedoraSettings.sh && \
+ADD changeFedoraSettings.sh /home/kramerius/changeFedoraSettings.sh
+RUN /home/kramerius/changeFedoraSettings.sh && \
+    mv /home/kramerius/fedora.fcfg $FEDORA_HOME/server/config/fedora.fcfg && rm /home/kramerius/changeFedoraSettings.sh && \
     rm $FEDORA_HOME/data/fedora-xacml-policies/repository-policies/default/deny-apim-if-not-localhost.xml && \
     rm $FEDORA_HOME/data/fedora-xacml-policies/repository-policies/default/deny-unallowed-file-resolution.xml
 
@@ -58,7 +62,7 @@ ENV JAAS_CONFIG /home/kramerius/fedora/server/config/jaas.conf
 
 # SOLR
 USER root
-RUN mkdir /tmp/kramerius-instalaltion && unzip /tmp/installation-4.8.zip -d /tmp/
+RUN unzip /tmp/installation-4.8.zip -d /tmp/
 USER kramerius
 RUN cp /tmp/installation-4.8/solr.war /home/kramerius/tomcat/webapps/solr.war && \
     cp -r /tmp/installation-4.8/solr /home/kramerius/

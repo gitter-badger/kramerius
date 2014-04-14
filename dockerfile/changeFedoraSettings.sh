@@ -11,5 +11,5 @@ xmlstarlet ed -N x="http://www.fedora.info/definitions/1/0/config/" \
 -s "//paramOAITMP" -t elem -n "comment" -v "Alias for OAI" \
 -r "//paramOAITMP" -v "param" \
 -u "//x:module[@role='org.fcrepo.server.resourceIndex.ResourceIndex']/x:param[@name='datastore']/@value" -v "localPostgresMPTTriplestore" \
-/home/kramerius/fedora/server/config/fedora.fcfg  > fedora.fcfg
+/home/kramerius/fedora/server/config/fedora.fcfg  > /home/kramerius/fedora.fcfg
 
