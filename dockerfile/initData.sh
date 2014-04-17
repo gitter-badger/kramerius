@@ -27,3 +27,7 @@ if [ -d "/kramerius-data/.kramerius4" ]; then
   mv fedora-users.xml /home/kramerius/fedora/server/config/fedora-users.xml
 fi
 
+if [ ! -d "/kramerius-data/imageserver" ]; then
+  mkdir /kramerius-data/imageserver
+fi
+

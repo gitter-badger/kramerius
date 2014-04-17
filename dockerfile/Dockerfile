@@ -6,7 +6,7 @@ MAINTAINER Martin Rumanek <martin@rumanek.cz>
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -y  update
-RUN apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod-jk vim unzip xmlstarlet curl less
+RUN apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod-jk vim unzip xmlstarlet curl less libfcgi0ldbl libjpeg62 libmemcached10 libtiff4 libapache2-mod-fcgid
 
 # download binaries
 RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.53/bin/apache-tomcat-7.0.53.tar.gz -O /tmp/tomcat.tar.gz && \
@@ -57,7 +57,8 @@ RUN /home/kramerius/changeFedoraSettings.sh && \
 ADD context.xml /home/kramerius/tomcat/conf/context.xml
 
 # JAAS
-ADD jaas.conf /home/kramerius/fedora/server/config/jaas.conf
+ADD jaas.conf /home/kramerius/fedora/server/config/jaas-kramerius.conf 
+RUN cat /home/kramerius/fedora/server/config/jaas-kramerius.conf >> /home/kramerius/fedora/server/config/jaas.conf
 ENV JAAS_CONFIG /home/kramerius/fedora/server/config/jaas.conf
 
 # SOLR
@@ -79,7 +80,6 @@ ADD kramerius-site /etc/apache2/sites-enabled/000-default
 ADD fedoraIngestModels.sh /fedoraIngestModels.sh
 RUN /etc/init.d/postgresql start && su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && sleep 90 && /fedoraIngestModels.sh
 
-RUN apt-get -y install libfcgi0ldbl libjpeg62 libmemcached10 libtiff4 libapache2-mod-fcgid 
 RUN wget --no-verbose https://dl.dropbox.com/s/7k24kkvqf1pafec/iipimage-jp2-amd64.deb -O /tmp/iipimage-jp2-amd64.deb
 RUN dpkg -i /tmp/iipimage-jp2-amd64.deb 
 
