@@ -5,8 +5,8 @@ MAINTAINER Martin Rumanek <martin@rumanek.cz>
 # install packages
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get -y  update
-RUN apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod-jk vim unzip xmlstarlet curl less libfcgi0ldbl libjpeg62 libmemcached10 libtiff4 libapache2-mod-fcgid
+RUN apt-get -y  update && \
+apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod-jk vim unzip xmlstarlet curl less libfcgi0ldbl libjpeg62 libmemcached10 libtiff4 libapache2-mod-fcgid htop
 
 # download binaries
 RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.53/bin/apache-tomcat-7.0.53.tar.gz -O /tmp/tomcat.tar.gz && \
@@ -43,7 +43,6 @@ RUN mkdir /tmp/kramerius; unzip /tmp/kramerius.zip -d /tmp/kramerius/ && \
 USER root
 RUN /etc/init.d/postgresql start && su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && sleep 360
 
-RUN sleep 1
 
 # fedora config - alias and resource index
 USER kramerius
@@ -53,8 +52,10 @@ RUN /home/kramerius/changeFedoraSettings.sh && \
     rm $FEDORA_HOME/data/fedora-xacml-policies/repository-policies/default/deny-apim-if-not-localhost.xml && \
     rm $FEDORA_HOME/data/fedora-xacml-policies/repository-policies/default/deny-unallowed-file-resolution.xml
 
-# context datasource
-ADD context.xml /home/kramerius/tomcat/conf/context.xml
+# context datasource, jdbc lib
+RUN wget --no-verbose http://jdbc.postgresql.org/download/postgresql-9.1-903.jdbc4.jar -O /home/kramerius/tomcat/lib/postgresql-9.1-903.jdbc4.jar
+ADD search.xml /home/kramerius/tomcat/conf/Catalina/localhost/search.xml
+ADD rightseditor.xml /home/kramerius/tomcat/conf/Catalina/localhost/rightseditor.xml
 
 # JAAS
 ADD jaas.conf /home/kramerius/fedora/server/config/jaas-kramerius.conf 
