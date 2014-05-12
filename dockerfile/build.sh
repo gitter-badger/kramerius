@@ -1,2 +1,2 @@
 #!/bin/sh
-docker build -t kramerius .
+docker.io build -t kramerius .

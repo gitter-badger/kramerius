@@ -6,12 +6,12 @@ MAINTAINER Martin Rumanek <martin@rumanek.cz>
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -y  update && \
-apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod-jk vim unzip xmlstarlet curl less libfcgi0ldbl libjpeg62 libmemcached10 libtiff4 libapache2-mod-fcgid htop
+apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod-jk vim unzip xmlstarlet curl less libfcgi0ldbl libjpeg62 libmemcached10 libtiff4 libapache2-mod-fcgid htop openssh-server
 
 # download binaries
 RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.53/bin/apache-tomcat-7.0.53.tar.gz -O /tmp/tomcat.tar.gz && \
     wget --no-verbose http://downloads.sourceforge.net/fedora-commons/fcrepo-installer-3.6.2.jar -O /tmp/fedora-install.jar && \
-    wget --no-verbose https://kramerius.googlecode.com/files/Kramerius-4.8.3.zip  -O /tmp/kramerius.zip && \
+    wget --no-verbose http://sourceforge.net/projects/kramerius/files/Kramerius-5.0.beta1.zip/download -O /tmp/kramerius.zip && \
     wget --no-verbose https://kramerius.googlecode.com/files/installation-4.8.zip -O /tmp/installation-4.8.zip
 
 # postgres
@@ -35,8 +35,8 @@ RUN java -jar /tmp/fedora-install.jar /home/kramerius/fedora-install.properties
 
 #install kramerius
 RUN mkdir /tmp/kramerius; unzip /tmp/kramerius.zip -d /tmp/kramerius/ && \
-    mv /tmp/kramerius/Kramerius-4.8.3/*.war  $CATALINA_HOME/webapps/ && \
-    mv /tmp/kramerius/Kramerius-4.8.3/*.jar  $CATALINA_HOME/lib/
+    mv /tmp/kramerius/Kramerius-5.0.beta1/*.war  $CATALINA_HOME/webapps/ && \
+    mv /tmp/kramerius/Kramerius-5.0.beta1/*.jar  $CATALINA_HOME/lib/
 
 
 # sleep until tomcat finish starting up (TODO)
@@ -93,6 +93,6 @@ RUN sed "s/data_directory = '\/var\/lib\/postgresql\/9.1\/main'/data_directory =
 RUN mv /tmp/postgresql.conf /etc/postgresql/9.1/main/postgresql.conf
 RUN mv /home/kramerius/fedora/data /home/kramerius/fedora/dataDefault && ln -s  /kramerius-data/fedora-data /home/kramerius/fedora/data 
 RUN mv /home/kramerius/.kramerius4 /home/kramerius/.kramerius4Default && ln -s /kramerius-data/.kramerius4 /home/kramerius/.kramerius4
-
+RUN mv /home/kramerius/solr/data /home/kramerius/solr/dataDefault && ln -s /kramerius-data/solr-data/ /home/kramerius/solr/data
 
 ENTRYPOINT /initData.sh && /etc/init.d/postgresql start && /etc/init.d/apache2 start && su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && /bin/bash
