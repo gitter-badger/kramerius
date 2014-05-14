@@ -16,11 +16,12 @@ RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7
 
 # postgres
 RUN sed 's/local   all             all                                     peer/local   all             all                                     md5/' \
-  /etc/postgresql/9.1/main/pg_hba.conf > pg_hba.conf && \
-    mv pg_hba.conf /etc/postgresql/9.1/main/pg_hba.conf && \
-  /etc/init.d/postgresql start && su -l postgres -c "createuser fedoraAdmin --no-superuser --no-createdb --no-createrole; \
+  /etc/postgresql/9.1/main/pg_hba.conf > pg_hba.conf ; \
+    mv pg_hba.conf /etc/postgresql/9.1/main/pg_hba.conf ; \
+  /etc/init.d/postgresql start ; su -l postgres -c "createuser fedoraAdmin --no-superuser --no-createdb --no-createrole; \
  createdb fedora3 --owner=fedoraAdmin; createdb kramerius4 --owner=fedoraAdmin; createdb riTriples --owner=fedoraAdmin; \
- psql --command \"alter user \\\"fedoraAdmin\\\" with password 'fedoraAdmin';\" "
+ psql --command \"alter user \\\"fedoraAdmin\\\" with password 'fedoraAdmin';\" "; \
+ /etc/init.d/postgresql start
 
 # install tomcat
 RUN adduser --disabled-password --gecos "" kramerius
@@ -41,7 +42,8 @@ RUN mkdir /tmp/kramerius; unzip /tmp/kramerius.zip -d /tmp/kramerius/ && \
 
 # sleep until tomcat finish starting up (TODO)
 USER root
-RUN /etc/init.d/postgresql start && su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && sleep 360
+RUN /etc/init.d/postgresql start; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh"; sleep 360; \
+    /etc/init.d/postgresql stop
 
 
 # fedora config - alias and resource index
@@ -79,7 +81,8 @@ ADD workers.properties /etc/libapache2-mod-jk/workers.properties
 ADD kramerius-site /etc/apache2/sites-enabled/000-default
 
 ADD fedoraIngestModels.sh /fedoraIngestModels.sh
-RUN /etc/init.d/postgresql start && su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && sleep 90 && /fedoraIngestModels.sh
+RUN /etc/init.d/postgresql start; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh"; \
+    sleep 90; /fedoraIngestModels.sh; /etc/init.d/postgresql stop
 
 RUN wget --no-verbose https://dl.dropbox.com/s/7k24kkvqf1pafec/iipimage-jp2-amd64.deb -O /tmp/iipimage-jp2-amd64.deb
 RUN dpkg -i /tmp/iipimage-jp2-amd64.deb 
@@ -95,4 +98,4 @@ RUN mv /home/kramerius/fedora/data /home/kramerius/fedora/dataDefault && ln -s  
 RUN mv /home/kramerius/.kramerius4 /home/kramerius/.kramerius4Default && ln -s /kramerius-data/.kramerius4 /home/kramerius/.kramerius4
 RUN mv /home/kramerius/solr/data /home/kramerius/solr/dataDefault && ln -s /kramerius-data/solr-data/ /home/kramerius/solr/data
 
-ENTRYPOINT /initData.sh && /etc/init.d/postgresql start && /etc/init.d/apache2 start && su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && /bin/bash
+ENTRYPOINT /initData.sh && /etc/init.d/postgresql start; /etc/init.d/apache2; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && /bin/bash
