@@ -89,7 +89,7 @@ RUN dpkg -i /tmp/iipimage-jp2-amd64.deb
 
 ADD migration.properties /home/kramerius/.kramerius4/migration.properties
 ADD configuration.properties /home/kramerius/.kramerius4/configuration.properties
-ADD initData.sh /initData.sh
+ADD init.sh /init.sh
 ADD parser.sh /parser.sh
 
 RUN sed "s/data_directory = '\/var\/lib\/postgresql\/9.1\/main'/data_directory = '\/kramerius-data\/postgres-data\/main'/" /etc/postgresql/9.1/main/postgresql.conf > /tmp/postgresql.conf
@@ -98,4 +98,4 @@ RUN mv /home/kramerius/fedora/data /home/kramerius/fedora/dataDefault && ln -s  
 RUN mv /home/kramerius/.kramerius4 /home/kramerius/.kramerius4Default && ln -s /kramerius-data/.kramerius4 /home/kramerius/.kramerius4
 RUN mv /home/kramerius/solr/data /home/kramerius/solr/dataDefault && ln -s /kramerius-data/solr-data/ /home/kramerius/solr/data
 
-ENTRYPOINT /initData.sh && /etc/init.d/postgresql start; /etc/init.d/apache2; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && /bin/bash
+#ENTRYPOINT /initData.sh; /etc/init.d/postgresql start; /etc/init.d/apache2; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh" && /bin/bash

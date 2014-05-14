@@ -40,3 +40,10 @@ if [ -f "/kramerius-data/.kramerius4/key.rsa.pub" ]; then
   chmod -R go-rwx /home/kramerius/.ssh
   /etc/init.d/ssh start
 fi
+
+/etc/init.d/postgresql start
+/etc/init.d/apache2 start
+su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh"
+
+while :; do /bin/bash; sleep 1; done
+
