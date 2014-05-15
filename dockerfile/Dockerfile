@@ -2,7 +2,9 @@ FROM debian:wheezy
 
 MAINTAINER Martin Rumanek <martin@rumanek.cz>
 
-# install packages
+RUN echo "Version: 20140515"
+
+## install packages
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -y  update && \
@@ -30,7 +32,7 @@ RUN tar xzf /tmp/tomcat.tar.gz --directory=/home/kramerius/ && mv /home/krameriu
 ENV CATALINA_HOME /home/kramerius/tomcat
 ENV FEDORA_HOME /home/kramerius/fedora
 
-#install fedora
+install fedora
 ADD fedora-install.properties /home/kramerius/fedora-install.properties
 RUN java -jar /tmp/fedora-install.jar /home/kramerius/fedora-install.properties
 
