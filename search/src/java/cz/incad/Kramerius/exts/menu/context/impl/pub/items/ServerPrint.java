@@ -16,12 +16,10 @@
  */
 package cz.incad.Kramerius.exts.menu.context.impl.pub.items;
 
-import java.io.IOException;
-
 import cz.incad.Kramerius.exts.menu.context.impl.AbstractContextMenuItem;
-import cz.incad.Kramerius.exts.menu.context.impl.adm.AdminContextMenuItem;
 import cz.incad.Kramerius.exts.menu.context.impl.pub.PublicContextMenuItem;
-import cz.incad.kramerius.security.SecuredActions;
+
+import java.io.IOException;
 
 public class ServerPrint extends AbstractContextMenuItem implements PublicContextMenuItem {
 
@@ -33,14 +31,15 @@ public class ServerPrint extends AbstractContextMenuItem implements PublicContex
     @Override
 	public boolean isRenderable() {
         boolean flag =  super.isRenderable();
-        if (flag) return this.hasUserAllowedAction(SecuredActions.SHOW_PRINT_MENU.getFormalName());
-        return flag;
+//        if (flag) return this.hasUserAllowedAction(SecuredActions.SHOW_PRINT_MENU.getFormalName());
+        return true;
 	}
 
 
 
 	@Override
     public String getRenderedItem() throws IOException {
-        return super.renderContextMenuItem("javascript:ctxPrint();", "administrator.menu.print");
+        return super.renderContextMenuItem("javascript:generatepdf(true);", "administrator.menu.prepareForPrint");
+//        return super.renderContextMenuItem("javascript:ctxPrint();", "administrator.menu.print");
     }
 }

@@ -16,28 +16,13 @@
  */
 package cz.incad.kramerius.processes.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-import java.util.logging.Level;
-
-import cz.incad.kramerius.processes.BatchStates;
-import cz.incad.kramerius.processes.DefinitionManager;
-import cz.incad.kramerius.processes.LRProcess;
-import cz.incad.kramerius.processes.LRProcessDefinition;
-import cz.incad.kramerius.processes.LRProcessManager;
-import cz.incad.kramerius.processes.States;
+import cz.incad.kramerius.processes.*;
 import cz.incad.kramerius.security.User;
-import cz.incad.kramerius.utils.StringUtils;
 import cz.incad.kramerius.utils.conf.KConfiguration;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.Level;
 
 public abstract class AbstractLRProcessImpl implements LRProcess{
 
@@ -144,6 +129,11 @@ public abstract class AbstractLRProcessImpl implements LRProcess{
 			for (String jpParam : javaProcessParameters) {
 				command.add(jpParam);
 			}
+
+            if (configuration.getConfiguration().getBoolean("indexer.remoteDebug", false) ) {
+                               LOGGER.info("Process is waiting for the debugger to attach");
+                               command.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + configuration.getConfiguration().getInt("indexer.port", 8001));
+                           }
 
 			command.add("-D"+ProcessStarter.MAIN_CLASS_KEY+"="+this.definition.getMainClass());
 			command.add("-D"+ProcessStarter.UUID_KEY+"="+this.uuid);

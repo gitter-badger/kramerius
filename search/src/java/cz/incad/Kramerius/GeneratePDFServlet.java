@@ -1,38 +1,10 @@
 package cz.incad.Kramerius;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
-import java.util.logging.Level;
-
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.exceptions.COSVisitorException;
-import org.apache.pdfbox.util.PDFMergerUtility;
-
 import antlr.RecognitionException;
 import antlr.TokenStreamException;
-
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.name.Named;
 import com.lowagie.text.DocumentException;
-
 import cz.incad.Kramerius.backend.guice.GuiceServlet;
 import cz.incad.kramerius.FedoraAccess;
 import cz.incad.kramerius.ObjectPidsPath;
@@ -49,6 +21,19 @@ import cz.incad.kramerius.utils.ApplicationURL;
 import cz.incad.kramerius.utils.conf.KConfiguration;
 import cz.incad.kramerius.utils.params.ParamsLexer;
 import cz.incad.kramerius.utils.params.ParamsParser;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.exceptions.COSVisitorException;
+import org.apache.pdfbox.util.PDFMergerUtility;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.logging.Level;
 
 public class GeneratePDFServlet extends GuiceServlet {
 
@@ -66,8 +51,14 @@ public class GeneratePDFServlet extends GuiceServlet {
 	public static final String UUID_TO="uuidTo";
     public static final String HOW_MANY="howMany";
 	public static final String PATH="path";
-	
-	@Inject
+    private static final String LOGO_FONT = "logo";
+    private static final String INF_FONT = "info";
+    private static final String PIDS = "pids";
+    private static final String RECT = "rect";
+    private static final String PREPARE_FOR_PRINT = "prepareForPrint";
+    private static final String PRINT_OPTIMIZATION = "printOptimization";
+
+    @Inject
 	GeneratePDFService service;
 	
 	@Inject
@@ -260,11 +251,33 @@ public class GeneratePDFServlet extends GuiceServlet {
                         generatedPDFFos = new FileOutputStream(generatedPDF);
 
                         start = System.currentTimeMillis();
-                        mergeToOutput(generatedPDFFos, tmpFile, fpage);
-                        LOGGER.fine("merging document pdf takes "+(System.currentTimeMillis() - start)+" ms ");
 
-                        outputJSON(response, generatedPDF, generatedPDFFos, tmpFile, fpage);
-                    	
+                        if ("true".equals(request.getParameter(PREPARE_FOR_PRINT))) {
+
+                            if ("true".equals(request.getParameter(PRINT_OPTIMIZATION))) {
+
+                                StringBuilder command = new StringBuilder("convert +dither -density 60 ")
+                                        .append(tmpFile.getAbsoluteFile())
+                                        .append(" -threshold 70% -normalize ")
+                                        .append(generatedPDF.getAbsoluteFile());
+                                ProcessBuilder processBuilder = new ProcessBuilder(command.toString());
+                                Process process = processBuilder.start();
+
+                                int code = 0;
+                                try {
+                                    code = process.waitFor();
+                                } catch (InterruptedException e) {
+                                    throw new IOException(e);
+                                }
+                            } else {
+                                FileUtils.copyFile(tmpFile, generatedPDF);
+                            }
+                        } else {
+                            mergeToOutput(generatedPDFFos, tmpFile, fpage);
+                            LOGGER.fine("merging document pdf takes " + (System.currentTimeMillis() - start) + " ms ");
+                        }
+
+                        outputJSON(response, generatedPDF);
                     } else {
                     	renderErrorTooMuchPages(request, response);
                     }
@@ -396,10 +409,29 @@ public class GeneratePDFServlet extends GuiceServlet {
                     File generatedPDF = File.createTempFile("rendered","pdf");
                     generatedPDFFos = new FileOutputStream(generatedPDF);
 
-                    mergeToOutput(generatedPDFFos, tmpFile, fpage);
+                    long start = System.currentTimeMillis();
 
-                    outputJSON(response, generatedPDF, generatedPDFFos, tmpFile, fpage);
-                    	
+                    if ("true".equals(request.getParameter(PREPARE_FOR_PRINT))) {
+
+                        if ("true".equals(request.getParameter(PRINT_OPTIMIZATION))) {
+                            ProcessBuilder processBuilder = new ProcessBuilder("convert", "+dither", "-density 60", tmpFile.getAbsolutePath(),
+                                    "-threshold 70%", "-normalize", generatedPDF.getAbsolutePath());
+                            Process process = processBuilder.start();
+                            int code = 0;
+                            try {
+                                code = process.waitFor();
+                            } catch (InterruptedException e) {
+                                throw new IOException(e);
+                            }
+                        } else {
+                            FileUtils.copyFile(tmpFile, generatedPDF);
+                        }
+                    } else {
+                            mergeToOutput(generatedPDFFos, tmpFile, fpage);
+                        LOGGER.fine("merging document pdf takes " + (System.currentTimeMillis() - start) + " ms ");
+                    }
+                    outputJSON(response, generatedPDF);
+
                     } else {
                     	renderErrorTooMuchPages(request, response);
                     }
@@ -509,7 +541,7 @@ public class GeneratePDFServlet extends GuiceServlet {
         }
 
 
-        public void outputJSON(HttpServletResponse response, File generatedPDF, FileOutputStream generatedPDFFos, File tmpFile, File fpage) throws IOException, COSVisitorException {
+        public void outputJSON(HttpServletResponse response, File generatedPDF) throws IOException, COSVisitorException {
             response.setContentType("text/plain");
             String uuid = UUID.randomUUID().toString();
             pullFile(uuid, generatedPDF);
@@ -529,10 +561,4 @@ public class GeneratePDFServlet extends GuiceServlet {
         }
 
     }
-    
-    private static final String LOGO_FONT = "logo";
-    private static final String INF_FONT = "info";
-    
-    private static final String PIDS = "pids";
-    private static final String RECT = "rect";
 }

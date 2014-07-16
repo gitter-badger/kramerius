@@ -173,10 +173,11 @@ function PDF() {
 
 
 	this.rectangle = null;
+    this.printOptimization = false;
 }
 
 
-PDF.prototype.renderPDF = function() {
+PDF.prototype.renderPDF = function(prepareForPrint) {
 	var u = null;
 	var selected = $("#pdf input:checked");
 	if (selected.length >= 1) {
@@ -201,8 +202,14 @@ PDF.prototype.renderPDF = function() {
 			var infFont = this.devconf["fontsSettings"]["infFont"];
 			u += "&rect="+rectangle[0]+","+rectangle[1]+"&logo={"+logoFont["style"]+";"+logoFont["size"]+"}&info={"+infFont["style"]+";"+infFont["size"]+"}&firstpageType=IMAGES";
 		}
-		
 
+        if (prepareForPrint) {
+            u += "&prepareForPrint=true";
+        }
+
+        if (this.printOptimization) {
+            u += "&printOptimization=true";
+        }
 
 		if (this.waitDialog) {
 			this.waitDialog.dialog('open');
@@ -246,27 +253,33 @@ PDF.prototype.renderPDF = function() {
 	}
 }
 
-PDF.prototype.generate = function(objects) {
+PDF.prototype.generate = function(objects, prepareForPrint) {
 	this.devconf = null;
 	
 	this.structs = objects;
-	var urlDialog=urlWithPids("inc/_pdf_dialog.jsp?pids=",objects);
+    var urlDialog=urlWithPids("inc/_pdf_dialog.jsp?prepareForPrint=" + prepareForPrint + "&pids=",objects);
 	$.get(urlDialog, bind(function(data){
 
 		if (this.dialog) {
 	    		this.dialog.dialog('open');
     	} else {
+            if (prepareForPrint) {
+                titleText = dictionary["generatePdfTitle"];
+            } else {
+                titleText = dictionary["generatePdfTitle"];
+            }
+
             $(document.body).append('<div id="pdf"></div>')
             this.dialog = $('#pdf').dialog({
                 width:600,
                 height:500,
                 modal:true,
-                title: dictionary["generatePdfTitle"],
+                title: titleText,
                 buttons:[
                          {
                              text: dictionary['pdf.dialog.button.generate'],
                              click: bind(function() {
-                             	this.renderPDF();
+                                this.renderPDF(prepareForPrint);
                             	this.dialog.dialog("close");
                              },this)
                          },

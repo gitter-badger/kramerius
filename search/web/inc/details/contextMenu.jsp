@@ -8,13 +8,6 @@
 <%@ taglib uri="/WEB-INF/tlds/cmn.tld" prefix="view" %>
 
 <%@ page isELIgnored="false"%>
-<%@ page import="java.util.*"%>
-<%@page import="com.google.inject.Injector"%>
-<%@page import="cz.incad.kramerius.utils.FedoraUtils"%>
-<%@page import="javax.servlet.jsp.jstl.fmt.LocalizationContext"%>
-<%@page import="cz.incad.kramerius.processes.LRProcessManager,cz.incad.kramerius.processes.DefinitionManager" %>
-<%@page import="cz.incad.kramerius.utils.conf.KConfiguration" %>
-<%@page import="cz.incad.kramerius.security.SecuredActions" %>
 
 <view:object name="ctxView" clz="cz.incad.Kramerius.views.ContextMenuViewObject"></view:object>
 
@@ -568,7 +561,8 @@
     }
 
     /** Generating pdf */
-    function generatepdf() {
+    function generatepdf(prepareForPrint) {
+        if (prepareForPrint == undefined) prepareForPrint = false;
         var pids = getAffectedPids();
         var structs = map(function(pid) {
             var divided = pid.split("_");
@@ -580,7 +574,7 @@
 
         }, pids);
         // show pdf dialog
-        pdf.generate(structs);
+        pdf.generate(structs, prepareForPrint);
     }
 
 
