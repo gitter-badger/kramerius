@@ -26,8 +26,7 @@ RUN sed 's/local   all             all                                     peer/
     mv pg_hba.conf /etc/postgresql/9.1/main/pg_hba.conf ; \
   /etc/init.d/postgresql start ; su -l postgres -c "createuser fedoraAdmin --no-superuser --no-createdb --no-createrole; \
  createdb fedora3 --owner=fedoraAdmin; createdb kramerius4 --owner=fedoraAdmin; createdb riTriples --owner=fedoraAdmin; \
- psql --command \"alter user \\\"fedoraAdmin\\\" with password 'fedoraAdmin';\"; \
- createuser proai --no-superuser --no-createdb --no-createrole; createdb proai --owner=proai; \" "; \
+ psql --command \"alter user \\\"fedoraAdmin\\\" with password 'fedoraAdmin';\" "; \
  /etc/init.d/postgresql start
 
 # install tomcat
