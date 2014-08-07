@@ -1,2 +1,2 @@
 #!/bin/sh
-docker build -t martinrumanek/fedora-3.5 .
+docker build -t fedora-3.5 .

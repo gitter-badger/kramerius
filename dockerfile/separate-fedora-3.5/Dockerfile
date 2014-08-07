@@ -2,7 +2,7 @@ FROM debian:wheezy
 
 MAINTAINER Martin Rumanek <martin@rumanek.cz>
 
-RUN echo "Version: 20140630"
+ENV REFRESHED_AT 2014-08-06
 
 ## install packages
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
@@ -49,10 +49,13 @@ USER root
 RUN apt-get -y install  zip
 USER kramerius
 RUN zip -0 -r /home/kramerius/tomcat/webapps/fedora.war /home/kramerius/tomcat/webapps/fedora
-
-# sleep until tomcat finish starting up (TODO)
 USER root
-RUN /etc/init.d/postgresql start; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh"; sleep 360; \
+
+# script for wait until is some service started
+ADD wait.sh /wait.sh
+
+#  sleep until tomcat finish starting up
+RUN /etc/init.d/postgresql start; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh"; /wait.sh "http://localhost:8080/"; \
     /etc/init.d/postgresql stop
 
 
@@ -80,7 +83,7 @@ ADD kramerius-site /etc/apache2/sites-enabled/000-default
 
 ADD fedoraIngestModels.sh /fedoraIngestModels.sh
 RUN /etc/init.d/postgresql start; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh"; \
-    sleep 90; /fedoraIngestModels.sh; /etc/init.d/postgresql stop
+    /wait.sh "http://localhost:8080/fedora"; /fedoraIngestModels.sh; /etc/init.d/postgresql stop
 
 
 ADD init.sh /init.sh
