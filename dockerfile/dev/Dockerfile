@@ -1,4 +1,4 @@
-FROM kramerius
+FROM moravianlibrary/kramerius
 
 ENV REFRESHED_AT 2014-08-13
 
