@@ -2,7 +2,7 @@ FROM debian:wheezy
 
 MAINTAINER Martin Rumanek <martin@rumanek.cz>
 
-RUN echo "Version: 20140630"
+ENV REFRESHED_AT 2014-08-13
 
 ## install packages
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin

@@ -44,7 +44,7 @@ fi
 
 /etc/init.d/postgresql start
 /etc/init.d/apache2 start
-su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh"
+su -l -m kramerius -c "/home/kramerius/tomcat/bin/startup.sh"
 
 while :; do /bin/bash; sleep 1; done
 

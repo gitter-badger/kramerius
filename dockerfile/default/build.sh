@@ -1,2 +1,2 @@
 #!/bin/sh
-docker build -t martinrumanek/kramerius .
+docker build -t kramerius .
