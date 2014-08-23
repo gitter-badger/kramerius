@@ -2,7 +2,7 @@ FROM debian:wheezy
 
 MAINTAINER Martin Rumanek <martin@rumanek.cz>
 
-ENV REFRESHED_AT 2014-08-13
+ENV REFRESHED_AT 2014-08-24
 
 ## install packages
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
@@ -15,10 +15,8 @@ apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod
 RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.55/bin/apache-tomcat-7.0.55.tar.gz -O /tmp/tomcat.tar.gz && \
     wget --no-verbose http://downloads.sourceforge.net/fedora-commons/fcrepo-installer-3.6.2.jar -O /tmp/fedora-install.jar && \
     wget --no-verbose https://kramerius.googlecode.com/files/installation-4.8.zip -O /tmp/installation-4.8.zip && \
-    mkdir /tmp/kramerius && \
-    wget --no-verbose http://dl.dropbox.com/s/wboa23m1bd7zonx/search.war -O /tmp/kramerius/search.war && \
-    wget --no-verbose http://d.dropbox.com/s/5xptx637glqqto8/security-core.jar -O /tmp/kramerius/security-core.jar && \
-    wget --no-verbose https://www.dropbox.com/s/n5f0yqmq30gnm8k/rightseditor.war -O /tmp/kramerius/rightseditor.war
+    wget --no-verbose http://dl.dropbox.com/s/m1zdvcgpp82l1js/kramerius.tar -O /tmp/kramerius.tar && \
+    tar xf /tmp/kramerius.tar -C /tmp/
 
 # postgres
 RUN sed 's/local   all             all                                     peer/local   all             all                                     md5/' \

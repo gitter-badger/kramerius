@@ -1,3 +1,3 @@
 #!/bin/sh
-docker build -t kramerius ../default/
-docker build -t kramerius-dev .
+docker build -t moravianlibrary/kramerius ../default/
+docker build -t moravianlibrary/kramerius-dev .
