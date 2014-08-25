@@ -7,6 +7,16 @@ RewriteRule  ^/fedora$ /fedora/ [R]
 RewriteRule  ^/kramerius$ /kramerius/ [R]
 RewriteRule  ^/rightseditor$ /rightseditor/ [R]
 
+# logging
+ErrorLog /var/log/apache2/error.log
+
+# Possible values include: debug, info, notice, warn, error, crit,
+# alert, emerg.
+LogLevel warn
+
+CustomLog /var/log/apache2/access.log combined
+
+
 <IfModule jk_module>
         JkMount /search/* search
         JkMount /solr/* solr
