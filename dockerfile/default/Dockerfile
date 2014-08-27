@@ -31,6 +31,8 @@ RUN sed 's/local   all             all                                     peer/
 RUN adduser --disabled-password --gecos "" kramerius
 USER kramerius
 RUN tar xzf /tmp/tomcat.tar.gz --directory=/home/kramerius/ && mv /home/kramerius/apache-tomcat-* /home/kramerius/tomcat
+RUN xmlstarlet ed -i "//Connector" -t attr -n "URIEncoding" -v "UTF-8" /home/kramerius/tomcat/conf/server.xml > \
+    /home/kramerius/server.xml && mv /home/kramerius/server.xml /home/kramerius/tomcat/conf/server.xml
 ENV CATALINA_HOME /home/kramerius/tomcat
 ENV FEDORA_HOME /home/kramerius/fedora
 
