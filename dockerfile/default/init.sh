@@ -46,5 +46,11 @@ fi
 /etc/init.d/apache2 start
 su -l -m kramerius -c "/home/kramerius/tomcat/bin/startup.sh"
 
+# change kramerius appearance
+if [  -d "/kramerius-data/appearance" ]; then
+  cp -r /kramerius-data/appearance/* /home/kramerius/tomcat/webapps/search/
+fi
+
+
 while :; do /bin/bash; sleep 1; done
 
