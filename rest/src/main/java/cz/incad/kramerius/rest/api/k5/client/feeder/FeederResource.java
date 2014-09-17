@@ -1,44 +1,35 @@
 package cz.incad.kramerius.rest.api.k5.client.feeder;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
-
 import cz.incad.kramerius.FedoraAccess;
 import cz.incad.kramerius.MostDesirable;
 import cz.incad.kramerius.SolrAccess;
-import cz.incad.kramerius.processes.annotations.DefaultParameterValue;
 import cz.incad.kramerius.rest.api.exceptions.GenericApplicationException;
 import cz.incad.kramerius.rest.api.k5.client.JSONDecoratorsAggregate;
 import cz.incad.kramerius.rest.api.k5.client.SolrMemoization;
 import cz.incad.kramerius.rest.api.k5.client.utils.JSONUtils;
 import cz.incad.kramerius.rest.api.k5.client.utils.SOLRUtils;
 import cz.incad.kramerius.security.User;
-import cz.incad.kramerius.users.UserProfile;
 import cz.incad.kramerius.users.UserProfileManager;
 import cz.incad.kramerius.utils.ApplicationURL;
 import cz.incad.kramerius.utils.XMLUtils;
+import cz.incad.kramerius.utils.conf.KConfiguration;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import java.io.IOException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Path("/v5.0/feed")
 public class FeederResource {
@@ -72,6 +63,9 @@ public class FeederResource {
 
     @Inject
     UserProfileManager userProfileManager;
+
+    @Inject
+    KConfiguration configuration;
 
     @GET
     @Path("newest")
@@ -179,5 +173,33 @@ public class FeederResource {
         jsonObject.put("data", jsonArray);
 
         return Response.ok().entity(jsonObject.toString()).build();
+    }
+
+    @GET
+    @Path("custom")
+    @Produces({ MediaType.APPLICATION_JSON + ";charset=utf-8" })
+    public Response custom() {
+        JSONObject result = new JSONObject();
+        JSONArray customArray = new JSONArray();
+        String[] pids = configuration.getPropertyList("search.home.tab.custom.uuids");
+
+        for (String pid : pids){
+            try {
+                String uriString = UriBuilder
+                        .fromResource(FeederResource.class)
+                        .path("mostdesirable").build(pid).toString();
+                JSONObject mdis = JSONUtils.pidAndModelDesc(pid, uriString, this.solrMemo, this.decoratorsAggregate, uriString);
+                customArray.add(mdis);
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, e.getMessage());
+                JSONObject error = new JSONObject();
+                error.put("pid", pid);
+                error.put("exception", e.getMessage());
+                customArray.add(error);
+            }
+        }
+        result.put("data", customArray);
+
+        return Response.ok().entity(result.toString()).build();
     }
 }
