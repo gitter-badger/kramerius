@@ -16,10 +16,10 @@
  */
 package cz.incad.kramerius.rest.api.k5.client.feeder.decorators;
 
+import cz.incad.kramerius.rest.api.k5.client.AbstractDecorator;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import cz.incad.kramerius.rest.api.k5.client.AbstractDecorator;
 
 public abstract class AbstractFeederDecorator extends AbstractDecorator {
 
@@ -51,5 +51,7 @@ public abstract class AbstractFeederDecorator extends AbstractDecorator {
 		return fctx.getRestPath().get(0).equals("mostdesirable") || fctx.getRestPath().get(0).equals("newest");
 	}
 
-	
+    protected boolean mostDesirableOrNewestOrCustom(TokenizedPath fctx) {
+        return fctx.getRestPath().get(0).equals("mostdesirable") || fctx.getRestPath().get(0).equals("newest") || fctx.getRestPath().get(0).equals("custom");
+    }
 }
