@@ -16,20 +16,16 @@
  */
 package cz.incad.kramerius.rest.api.k5.client.utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.collections.map.HashedMap;
+import cz.incad.kramerius.utils.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import cz.incad.kramerius.utils.XMLUtils;
-
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SOLRUtils {
 
@@ -127,6 +123,29 @@ public class SOLRUtils {
                 });
         for (Element e : elms) {
             ret.add(value(elms.get(0).getTextContent(), clz));
+        }
+        return ret;
+    }
+
+    public static <T> List<T> arrayForAuthors(final Element doc,
+                                    final String attributeName, Class<T> clz) {
+        List<T> ret = new ArrayList<T>();
+        List<Element> elms = XMLUtils.getElements(doc,
+                new XMLUtils.ElementsFilter() {
+
+                    @Override
+                    public boolean acceptElement(Element element) {
+                        return (element.getNodeName().equals("arr")
+                                && element.hasAttribute("name") && element
+                                .getAttribute("name").equals(attributeName));
+                    }
+                });
+        if(!elms.isEmpty()) {
+            Node node = elms.get(0).getFirstChild();
+            while (node != null) {
+                ret.add(value(node.getTextContent(), clz));
+                node = node.getNextSibling();
+            }
         }
         return ret;
     }
