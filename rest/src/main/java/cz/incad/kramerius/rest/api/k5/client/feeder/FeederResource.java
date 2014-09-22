@@ -74,11 +74,13 @@ public class FeederResource {
             @QueryParam("vc") @DefaultValue("") String virtualCollection,
             @QueryParam("limit") Integer limit,
             @QueryParam("offset") Integer offset,
-            @QueryParam("type") String documentType) {
+            @QueryParam("type") String documentType,
+            @QueryParam("policy") String policy) {
         try {
             if (limit == null) {
                 limit = LIMIT;
             }
+            policy = policy == null ? "all" : policy;
             int start = (offset == null) ? 0 : offset * limit;
 
             JSONObject jsonObject = new JSONObject();
@@ -115,7 +117,8 @@ public class FeederResource {
                         JSONObject mdis = JSONUtils.pidAndModelDesc(pid,
                                 uriString, this.solrMemo,
                                 this.decoratorsAggregate, uriString);
-                        jsonArray.add(mdis);
+                        if(policy.equals("all") || (mdis.containsKey("policy") && mdis.get("policy").equals(policy)))
+                            jsonArray.add(mdis);
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                         JSONObject error = new JSONObject();
@@ -140,7 +143,8 @@ public class FeederResource {
     public Response mostdesirable(
             @QueryParam("limit") Integer limit,
             @QueryParam("offset") Integer offset,
-            @QueryParam("type") String documentType) {
+            @QueryParam("type") String documentType,
+            @QueryParam("policy") String policy) {
         // "http://localhost:8080/search/inc/home/mostDesirables-rss.jsp"
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("rss",
@@ -152,6 +156,7 @@ public class FeederResource {
         if (offset == null) {
             offset = 0;
         }
+        policy = policy == null ? "all" : policy;
         List<String> mostDesirable = this.mostDesirable.getMostDesirable(limit, offset, documentType);
         JSONArray jsonArray = new JSONArray();
         for (String pid : mostDesirable) {
@@ -161,7 +166,8 @@ public class FeederResource {
                         .path("mostdesirable").build(pid).toString();
                 JSONObject mdis = JSONUtils.pidAndModelDesc(pid, 
                         uriString, this.solrMemo, this.decoratorsAggregate, uriString);
-                jsonArray.add(mdis);
+                if(policy.equals("all") || (mdis.containsKey("policy") && mdis.get("policy").equals(policy)))
+                    jsonArray.add(mdis);
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, e.getMessage(), e);
                 JSONObject error = new JSONObject();
@@ -178,18 +184,21 @@ public class FeederResource {
     @GET
     @Path("custom")
     @Produces({ MediaType.APPLICATION_JSON + ";charset=utf-8" })
-    public Response custom() {
+    public Response custom(
+            @QueryParam("policy") String policy
+    ) {
         JSONObject result = new JSONObject();
         JSONArray customArray = new JSONArray();
         String[] pids = configuration.getPropertyList("search.home.tab.custom.uuids");
-
+        policy = policy == null ? "all" : policy;
         for (String pid : pids){
             try {
                 String uriString = UriBuilder
                         .fromResource(FeederResource.class)
                         .path("custom").build(pid).toString();
                 JSONObject mdis = JSONUtils.pidAndModelDesc(pid, uriString, this.solrMemo, this.decoratorsAggregate, uriString);
-                customArray.add(mdis);
+                if(policy.equals("all") || (mdis.containsKey("policy") && mdis.get("policy").equals(policy)))
+                    customArray.add(mdis);
             } catch (IOException e) {
                 LOGGER.log(Level.SEVERE, e.getMessage());
                 JSONObject error = new JSONObject();

@@ -107,7 +107,8 @@ public class ApiServletModule extends JerseyServletModule {
 		decs.addBinding().to(FeederSolrRootPidDecorate.class);
 		decs.addBinding().to(FeederSolrTitleDecorate.class);
         decs.addBinding().to(SolrAuthorDecorate.class);
-		
+        decs.addBinding().to(SolrPolicyDecorate.class);
+
 		//item
 		decs.addBinding().to(HandleDecorate.class);
 		decs.addBinding().to(ItemSolrTitleDecorate.class);
