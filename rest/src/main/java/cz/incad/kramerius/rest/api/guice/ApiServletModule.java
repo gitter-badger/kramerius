@@ -27,10 +27,26 @@ import cz.incad.kramerius.rest.api.k5.admin.vc.VirtualCollectionsResource;
 import cz.incad.kramerius.rest.api.k5.client.JSONDecorator;
 import cz.incad.kramerius.rest.api.k5.client.SolrMemoization;
 import cz.incad.kramerius.rest.api.k5.client.feeder.FeederResource;
-import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.*;
+import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.FeederPdfDecorate;
+import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.FeederSolrRootModelDecorate;
+import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.FeederSolrRootPidDecorate;
+import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.FeederSolrTitleDecorate;
+import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.SolrAuthorDecorate;
+import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.SolrDateDecorate;
+import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.SolrISSNDecorate;
+import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.SolrLanguageDecorate;
+import cz.incad.kramerius.rest.api.k5.client.feeder.decorators.SolrPolicyDecorate;
 import cz.incad.kramerius.rest.api.k5.client.impl.SolrMemoizationImpl;
 import cz.incad.kramerius.rest.api.k5.client.item.ItemResource;
-import cz.incad.kramerius.rest.api.k5.client.item.decorators.*;
+import cz.incad.kramerius.rest.api.k5.client.item.decorators.CollectionsDecorator;
+import cz.incad.kramerius.rest.api.k5.client.item.decorators.HandleDecorate;
+import cz.incad.kramerius.rest.api.k5.client.item.decorators.ItemSolrRootModelDecorate;
+import cz.incad.kramerius.rest.api.k5.client.item.decorators.ItemSolrRootPidDecorate;
+import cz.incad.kramerius.rest.api.k5.client.item.decorators.ItemSolrTitleDecorate;
+import cz.incad.kramerius.rest.api.k5.client.item.decorators.ReplicatedFromDecorator;
+import cz.incad.kramerius.rest.api.k5.client.item.decorators.SolrContextDecorate;
+import cz.incad.kramerius.rest.api.k5.client.item.decorators.SolrDataNode;
+import cz.incad.kramerius.rest.api.k5.client.item.decorators.SolrRightsFlag;
 import cz.incad.kramerius.rest.api.k5.client.item.decorators.details.MonographUnitDecorate;
 import cz.incad.kramerius.rest.api.k5.client.item.decorators.details.PageDetailDecorate;
 import cz.incad.kramerius.rest.api.k5.client.item.decorators.details.PeriodicalItemDecorate;
@@ -108,6 +124,7 @@ public class ApiServletModule extends JerseyServletModule {
 		decs.addBinding().to(FeederSolrTitleDecorate.class);
         decs.addBinding().to(SolrAuthorDecorate.class);
         decs.addBinding().to(SolrPolicyDecorate.class);
+        decs.addBinding().to(FeederPdfDecorate.class);
 
 		//item
 		decs.addBinding().to(HandleDecorate.class);
