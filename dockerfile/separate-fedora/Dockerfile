@@ -13,14 +13,13 @@ apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod
 
 # download binaries
 RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.55/bin/apache-tomcat-7.0.55.tar.gz -O /tmp/tomcat.tar.gz && \
-    wget --no-verbose http://sourceforge.net/projects/fedora-commons/files/fedora/3.7.1/fcrepo-installer-3.7.1.jar/download -O /tmp/fedora-install.jar && \
+    wget --no-verbose http://sourceforge.net/projects/fedora-commons/files/fedora/3.7.0/fcrepo-installer-3.7.0.jar/download -O /tmp/fedora-install.jar && \
     wget --no-verbose https://kramerius.googlecode.com/files/installation-4.8.zip -O /tmp/installation-4.8.zip && \
     mkdir /tmp/kramerius && \
     wget --no-verbose http://dl.dropbox.com/s/wboa23m1bd7zonx/search.war -O /tmp/kramerius/search.war && \
     wget --no-verbose http://d.dropbox.com/s/5xptx637glqqto8/security-core.jar -O /tmp/kramerius/security-core.jar && \
     wget --no-verbose https://www.dropbox.com/s/n5f0yqmq30gnm8k/rightseditor.war -O /tmp/kramerius/rightseditor.war
 
-RUN echo "test"
 # postgres
 RUN sed 's/local   all             all                                     peer/local   all             all                                     md5/' \
   /etc/postgresql/9.1/main/pg_hba.conf > pg_hba.conf ; \
@@ -42,16 +41,8 @@ RUN unzip /tmp/installation-4.8.zip -d /tmp/
 ADD fedora-install.properties /home/kramerius/fedora-install.properties
 RUN java -jar /tmp/fedora-install.jar /home/kramerius/fedora-install.properties
 
-# fix bad web.xml in fedora.war
-RUN unzip /home/kramerius/tomcat/webapps/fedora.war -d /home/kramerius/tomcat/webapps/fedora
-RUN sed -i.bak -e '216,219d' /home/kramerius/tomcat/webapps/fedora/WEB-INF/web.xml
-USER root
-RUN apt-get -y install  zip
-USER kramerius
-RUN zip -0 -r /home/kramerius/tomcat/webapps/fedora.war /home/kramerius/tomcat/webapps/fedora
-USER root
-
 # script for wait until is some service started
+USER root
 ADD wait.sh /wait.sh
 
 #  sleep until tomcat finish starting up
