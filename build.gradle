@@ -168,7 +168,12 @@ subprojects {
          	 	 url "http://jbig2-imageio.googlecode.com/svn/maven-repository"
          	 }
          }
+
+        build.finalizedBy 'install'
 }
+
+
+
 
 task zipAllJavadocs(type: Zip) {
         //only from this project 
