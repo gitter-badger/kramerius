@@ -1,6 +1,10 @@
 package cz.incad.kramerius.utils.conf;
 
-import static cz.incad.kramerius.Constants.WORKING_DIR;
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,16 +12,15 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import static cz.incad.kramerius.Constants.WORKING_DIR;
 
 public class KConfiguration {
     
@@ -304,5 +307,14 @@ public class KConfiguration {
         System.out.println(conf.getString("_fedoraTomcatHost"));
         System.out.println(conf.getString("indexerHost"));
     }*/
+
+    public Set<String> getPropertiesSubset(String key) {
+        Iterator<String> props = allConfigurations.getKeys(key);
+        Set<String> keys = new HashSet<String>();
+        while (props.hasNext()) {
+            keys.add(props.next());
+        }
+        return keys;
+    }
 
 }

@@ -22,12 +22,17 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -98,7 +103,7 @@ public class FeederResource {
             Document document = this.solrAccess.request(req.toString());
             Element result = XMLUtils.findElement(
                     document.getDocumentElement(), "result");
-            JSONArray jsonArray = new JSONArray();
+            JSONObject jsonData = new JSONObject();
             List<Element> docs = XMLUtils.getElements(result,
                     new XMLUtils.ElementsFilter() {
                         @Override
@@ -117,18 +122,19 @@ public class FeederResource {
                         JSONObject mdis = JSONUtils.pidAndModelDesc(pid,
                                 uriString, this.solrMemo,
                                 this.decoratorsAggregate, uriString);
-                        if(policy.equals("all") || (mdis.containsKey("policy") && mdis.get("policy").equals(policy)))
-                            jsonArray.add(mdis);
+                        if(policy.equals("all") || (mdis.containsKey("policy") && mdis.get("policy").equals(policy))) {
+                            addToJSON(jsonData, mdis, mdis.getString("model"));
+                        }
                     } catch (IOException ex) {
                         LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
                         JSONObject error = new JSONObject();
                         error.put("pid", pid);
                         error.put("exception", ex.getMessage());
-                        jsonArray.add(error);
+                        addToJSON(jsonData, jsonObject, "error");
                     }
                 }
             }
-            jsonObject.put("data", jsonArray);
+            jsonObject.put("data", jsonData);
             return Response.ok().entity(jsonObject.toString()).build();
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
@@ -158,7 +164,7 @@ public class FeederResource {
         }
         policy = policy == null ? "all" : policy;
         List<String> mostDesirable = this.mostDesirable.getMostDesirable(limit, offset, documentType);
-        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonData = new JSONObject();
         for (String pid : mostDesirable) {
             try {
                 String uriString = UriBuilder
@@ -166,17 +172,18 @@ public class FeederResource {
                         .path("mostdesirable").build(pid).toString();
                 JSONObject mdis = JSONUtils.pidAndModelDesc(pid, 
                         uriString, this.solrMemo, this.decoratorsAggregate, uriString);
-                if(policy.equals("all") || (mdis.containsKey("policy") && mdis.get("policy").equals(policy)))
-                    jsonArray.add(mdis);
+                if(policy.equals("all") || (mdis.containsKey("policy") && mdis.get("policy").equals(policy))) {
+                    addToJSON(jsonData, mdis, mdis.getString("model"));
+                }
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, e.getMessage(), e);
                 JSONObject error = new JSONObject();
                 error.put("pid", pid);
                 error.put("exception", e.getMessage());
-                jsonArray.add(error);
+                addToJSON(jsonData, jsonObject, "error");
             }
         }
-        jsonObject.put("data", jsonArray);
+        jsonObject.put("data", jsonData);
 
         return Response.ok().entity(jsonObject.toString()).build();
     }
@@ -185,30 +192,75 @@ public class FeederResource {
     @Path("custom")
     @Produces({ MediaType.APPLICATION_JSON + ";charset=utf-8" })
     public Response custom(
-            @QueryParam("policy") String policy
+            @QueryParam("policy") String policy,
+            @QueryParam("type") String documentType
     ) {
         JSONObject result = new JSONObject();
-        JSONArray customArray = new JSONArray();
-        String[] pids = configuration.getPropertyList("search.home.tab.custom.uuids");
+        JSONObject jsonData = new JSONObject();
+
+        Set<String> config = configuration.getPropertiesSubset("search.home.tab.custom");
         policy = policy == null ? "all" : policy;
-        for (String pid : pids){
-            try {
-                String uriString = UriBuilder
-                        .fromResource(FeederResource.class)
-                        .path("custom").build(pid).toString();
-                JSONObject mdis = JSONUtils.pidAndModelDesc(pid, uriString, this.solrMemo, this.decoratorsAggregate, uriString);
-                if(policy.equals("all") || (mdis.containsKey("policy") && mdis.get("policy").equals(policy)))
-                    customArray.add(mdis);
-            } catch (IOException e) {
-                LOGGER.log(Level.SEVERE, e.getMessage());
-                JSONObject error = new JSONObject();
-                error.put("pid", pid);
-                error.put("exception", e.getMessage());
-                customArray.add(error);
+
+        for (String property : config) {
+            String[] pids = configuration.getPropertyList(property);
+            for (String pid : pids){
+                if(property.equals("search.home.tab.custom.uuids")) {
+                    if(!pid.isEmpty()) {
+                        jsonData = getJSONForPid(pid, policy, jsonData);
+                    }
+                } else {
+                    String model = property.split("\\.")[4];
+                    jsonData = getJSONForPid(pid, policy, jsonData, model, true);
+                }
             }
         }
-        result.put("data", customArray);
+        result.put("data", jsonData);
 
         return Response.ok().entity(result.toString()).build();
+    }
+
+    private JSONObject getJSONForPid(String pid, String policy, JSONObject jsonData){
+        return getJSONForPid(pid, policy, jsonData, null, false);
+    }
+
+    private JSONObject getJSONForPid(String pid, String policy, JSONObject jsonData, String model, boolean hasModel){
+        try {
+            String uriString = UriBuilder
+                    .fromResource(FeederResource.class)
+                    .path("custom").build(pid).toString();
+            JSONObject mdis = JSONUtils.pidAndModelDesc(pid, uriString, this.solrMemo, this.decoratorsAggregate, uriString);
+            if(policy.equals("all") || (mdis.containsKey("policy") && mdis.get("policy").equals(policy))) {
+                if(hasModel) {
+                    if(model.equals(mdis.getString("model"))) {
+                        addToJSON(jsonData, mdis, model);
+                    } else {
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("pid", "Neshoduje se model a kategorie pid: " + pid);
+                        addToJSON(jsonData, jsonObject, "error");
+                    }
+                } else {
+                    addToJSON(jsonData, mdis, mdis.getString("model"));
+                }
+
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, e.getMessage());
+            JSONObject error = new JSONObject();
+            error.put("pid", pid);
+            error.put("exception", e.getMessage());
+            addToJSON(jsonData, error, "error");
+        }
+        return jsonData;
+    }
+
+    private void addToJSON(JSONObject jsonData, JSONObject mdis, String model) {
+        if(jsonData.has(model)) {
+            JSONArray jsonArray = jsonData.getJSONArray(model);
+            jsonArray.add(mdis);
+        } else {
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.add(mdis);
+            jsonData.put(model, jsonArray);
+        }
     }
 }
