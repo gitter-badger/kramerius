@@ -234,9 +234,8 @@ public class FeederResource {
                     if(model.equals(mdis.getString("model"))) {
                         addToJSON(jsonData, mdis, model);
                     } else {
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("pid", "Neshoduje se model a kategorie pid: " + pid);
-                        addToJSON(jsonData, jsonObject, "error");
+                        LOGGER.log(Level.WARNING, "U dokumentu " + pid + "se neshoduje zadany model " + model
+                                + " s modelem ve fedore " + mdis.getString("model"));
                     }
                 } else {
                     addToJSON(jsonData, mdis, mdis.getString("model"));
