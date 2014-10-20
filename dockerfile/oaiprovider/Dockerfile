@@ -12,7 +12,7 @@ apt-get -y install wget openjdk-7-jre-headless postgresql vim unzip curl less
 
 
 # download binaries
-RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.55/bin/apache-tomcat-7.0.55.tar.gz -O /tmp/tomcat.tar.gz && \
+RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.56/bin/apache-tomcat-7.0.56.tar.gz -O /tmp/tomcat.tar.gz && \
     wget --no-verbose http://downloads.sourceforge.net/fedora-commons/oaiprovider-1.2.2.zip -O /tmp/oaiprovider.zip
 
 # postgres
