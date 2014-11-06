@@ -262,7 +262,7 @@ public class SearchResultTest {
                 });
         
         Assert.assertTrue(elms.size() == 1);
-        String index = ItemResource.relsExtIndex("uuid:dfc78a5c-2542-44cf-8722-ee8a0924a855", elms.get(0));
+        String index = SOLRUtils.relsExtIndex("uuid:dfc78a5c-2542-44cf-8722-ee8a0924a855", elms.get(0));
         //cannot find actual index, always returs 0
         Assert.assertEquals("0", index);
     }

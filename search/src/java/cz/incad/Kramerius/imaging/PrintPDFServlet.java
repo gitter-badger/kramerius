@@ -5,6 +5,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageTypeSpecifier;
@@ -15,12 +19,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.xpath.XPathExpressionException;
 
+import cz.incad.kramerius.rest.api.k5.client.SolrMemoization;
+import cz.incad.kramerius.rest.api.k5.client.utils.SOLRUtils;
 import org.json.JSONException;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
-import com.lowagie.text.BadElementException;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Image;
@@ -45,8 +50,23 @@ import cz.incad.kramerius.utils.imgs.KrameriusImageSupport;
 public class PrintPDFServlet extends GuiceServlet {
 
     public static Logger LOGGER = Logger.getLogger(PrintPDFServlet.class.getName());
-    
-    
+
+    @Inject
+    @Named("securedFedoraAccess")
+    FedoraAccess fedoraAccess;
+
+    @Inject
+    SolrAccess solrAccess;
+
+    @Inject
+    SolrMemoization solrMemoization;
+
+    @Inject
+    IsActionAllowed actionAllowed;
+
+    @Inject
+    Provider<User> userProvider;
+
     public static enum Page {
 
         A4(PageSize.A4), A3(PageSize.A3);
@@ -62,15 +82,15 @@ public class PrintPDFServlet extends GuiceServlet {
         }
     }
 
-    
+
     public static enum ImageOP {
         CUT {
             @Override
-            protected void imageData(FedoraAccess fa,String pid, HttpServletRequest req, OutputStream os) throws IOException{
+            protected void imageData(FedoraAccess fa, String pid, HttpServletRequest req, OutputStream os) throws IOException {
                 try {
                     pid = fa.findFirstViewablePid(pid);
                     BufferedImage bufferedImage = KrameriusImageSupport.readImage(pid, ImageStreams.IMG_FULL.getStreamName(), fa, 0);
-                    BufferedImage subImage = ImageCutServlet.simpleSubImage(bufferedImage, req,  pid);
+                    BufferedImage subImage = ImageCutServlet.simpleSubImage(bufferedImage, req, pid);
                     KrameriusImageSupport.writeImageToStream(subImage, ImageMimeType.PNG.getDefaultFileExtension(), os);
                 } catch (XPathExpressionException e) {
                     LOGGER.severe(e.getMessage());
@@ -79,42 +99,29 @@ public class PrintPDFServlet extends GuiceServlet {
                 }
             }
         },
-        
+
         FULL {
             @Override
-            protected void imageData(FedoraAccess fa,String pid, HttpServletRequest req, OutputStream os) throws IOException {
-                    try {
-                        pid = fa.findFirstViewablePid(pid);
-                        String mimeTypeForStream = fa.getMimeTypeForStream(pid, ImageStreams.IMG_FULL.getStreamName());
-                        ImageMimeType mimeType = ImageMimeType.loadFromMimeType(mimeTypeForStream);
-                        if ((!mimeType.equals(ImageMimeType.DJVU)) && (!mimeType.equals(ImageMimeType.XDJVU))&& (!mimeType.equals(ImageMimeType.VNDDJVU)) && (!mimeType.equals(ImageMimeType.PDF))) {
-                            IOUtils.copyStreams(fa.getImageFULL(pid), os);
-                        } else {
-                            BufferedImage bufferedImage = KrameriusImageSupport.readImage(pid, ImageStreams.IMG_FULL.getStreamName(), fa, 0);
-                            KrameriusImageSupport.writeImageToStream(bufferedImage, ImageMimeType.PNG.getDefaultFileExtension(), os);
-                        }
-                    } catch (XPathExpressionException e) {
-                        LOGGER.severe(e.getMessage());
+            protected void imageData(FedoraAccess fa, String pid, HttpServletRequest req, OutputStream os) throws IOException {
+                try {
+                    pid = fa.findFirstViewablePid(pid);
+                    String mimeTypeForStream = fa.getMimeTypeForStream(pid, ImageStreams.IMG_FULL.getStreamName());
+                    ImageMimeType mimeType = ImageMimeType.loadFromMimeType(mimeTypeForStream);
+                    if ((!mimeType.equals(ImageMimeType.DJVU)) && (!mimeType.equals(ImageMimeType.XDJVU)) && (!mimeType.equals(ImageMimeType.VNDDJVU)) && (!mimeType.equals(ImageMimeType.PDF))) {
+                        IOUtils.copyStreams(fa.getImageFULL(pid), os);
+                    } else {
+                        BufferedImage bufferedImage = KrameriusImageSupport.readImage(pid, ImageStreams.IMG_FULL.getStreamName(), fa, 0);
+                        KrameriusImageSupport.writeImageToStream(bufferedImage, ImageMimeType.PNG.getDefaultFileExtension(), os);
                     }
+                } catch (XPathExpressionException e) {
+                    LOGGER.severe(e.getMessage());
+                }
             }
         };
 
-        protected abstract void imageData(FedoraAccess fa, String pid,HttpServletRequest req,  OutputStream os) throws IOException ;
+        protected abstract void imageData(FedoraAccess fa, String pid, HttpServletRequest req, OutputStream os) throws IOException;
 
     }
-
-    @Inject
-    @Named("securedFedoraAccess")
-    FedoraAccess fedoraAccess;
-
-    @Inject
-    SolrAccess solrAccess;
-    
-    @Inject
-    IsActionAllowed actionAllowed;
-
-    @Inject
-    Provider<User> userProvider;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -122,74 +129,64 @@ public class PrintPDFServlet extends GuiceServlet {
         try {
 
             resp.setContentType(ImageMimeType.PDF.getValue());
-            
+
             String pid = req.getParameter("pid");
             String pids = req.getParameter("pids");
             String pageSize = req.getParameter("pagesize");
             String imgop = req.getParameter("imgop");
 
-            
+
             Document document = new Document(Page.valueOf(pageSize).getRect());
             ServletOutputStream sos = resp.getOutputStream();
             PdfWriter.getInstance(document, sos);
-            document.open();
 
             if (StringUtils.isAnyString(pid)) {
-                if (canBeRead(pid)) {
-                    
-                    File nfile = File.createTempFile("local", "print");
-                    nfile.deleteOnExit();
-                    FileOutputStream fos = new FileOutputStream(nfile);
-                    ImageOP.valueOf(imgop).imageData(this.fedoraAccess, pid, req, fos);
-                    
-                    Image image = Image.getInstance(nfile.toURI().toURL());
-
-                    image.scaleToFit(
-                            document.getPageSize().getWidth() - document.leftMargin()
-                                    - document.rightMargin(),
-                            document.getPageSize().getHeight() - document.topMargin()
-                                    - document.bottomMargin());
-                    document.add(image);
-                    
-                } else {
-                    resp.sendError(HttpServletResponse.SC_FORBIDDEN);
-                }
-            } else {
-                String[] pds = pids.split(",");
-                boolean canBeRendered = false;
-                for (int i = 0; i < pds.length; i++) {
-                    if (!canBeRendered) canBeRendered = canBeRead(pds[i]);
-                }
-                if (canBeRendered) {
-                    for (int i = 0; i < pds.length; i++) {
-                        File nfile = File.createTempFile("local", "print");
-                        nfile.deleteOnExit();
-                        FileOutputStream fos = new FileOutputStream(nfile);
-                        
-                        ImageOP.valueOf(imgop).imageData(this.fedoraAccess, pds[i], req, fos);
-                        
-                        Image image = Image.getInstance(nfile.toURI().toURL());
-
-                        image.scaleToFit(
-                                document.getPageSize().getWidth() - document.leftMargin()
-                                        - document.rightMargin(),
-                                document.getPageSize().getHeight() - document.topMargin()
-                                        - document.bottomMargin());
-                        document.add(image);        
-                        if (i < pds.length-1) {
-                            document.newPage();
-                        }
-                    }
-                } else {
-                    resp.sendError(HttpServletResponse.SC_FORBIDDEN);
-                }
+                pids = pid;
             }
-            document.close();
-        } catch (BadElementException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            ArrayList<String> pds = new ArrayList<String>(Arrays.asList(pids.split(",")));
+            if (!generateDocument(pds, document, imgop, req, resp)) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+            }
+
         } catch (DocumentException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private boolean generateDocument(List<String> pds, Document document, String imgop, HttpServletRequest req, HttpServletResponse resp) throws IOException, DocumentException {
+        document.open();
+
+        LinkedList<String> pidsWithChildren = new LinkedList(pds);
+        enrichChildren(pidsWithChildren);
+
+        for (String pid : pidsWithChildren) {
+            if (!canBeRead(pid)) return false;
+        }
+        int i = 0;
+        for (String pid : pidsWithChildren) {
+
+            File nfile = File.createTempFile("local", "print");
+            nfile.deleteOnExit();
+            FileOutputStream fos = new FileOutputStream(nfile);
+
+            ImageOP.valueOf(imgop).imageData(this.fedoraAccess, pid, req, fos);
+
+            Image image = Image.getInstance(nfile.toURI().toURL());
+
+            image.scaleToFit(
+                    document.getPageSize().getWidth() - document.leftMargin()
+                            - document.rightMargin(),
+                    document.getPageSize().getHeight() - document.topMargin()
+                            - document.bottomMargin());
+            document.add(image);
+            if (i < pidsWithChildren.size() - 1) {
+                document.newPage();
+            }
+            i++;
+        }
+
+        document.close();
+        return true;
     }
 
     private boolean canBeRead(String pid) throws IOException {
@@ -202,5 +199,17 @@ public class PrintPDFServlet extends GuiceServlet {
         return false;
     }
 
-    
+    private void enrichChildren(LinkedList<String> pids) throws IOException {
+        for (int i = 0; i < pids.size(); i++) {
+            List<String> children = SOLRUtils.solrChildren(solrAccess, solrMemoization, pids.get(i), new ArrayList<String>());
+            if (children.size() > 0) {
+                for (String child : children) {
+                    pids.add(i, child);
+                    i++;
+                }
+            } else {
+                i++;
+            }
+        }
+    }
 }
