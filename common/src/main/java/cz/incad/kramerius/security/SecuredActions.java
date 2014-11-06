@@ -109,6 +109,9 @@ public enum SecuredActions {
     /** print  */
     SHOW_PRINT_MENU("show_print_menu"),
 
+    /** generate pdf  */
+    SHOW_GENERATE_PDF_MENU("show_generate_pdf_menu"),
+
     /** page info */
     SHOW_ALTERNATIVE_INFO_TEXT("show_alternative_info_text");
 

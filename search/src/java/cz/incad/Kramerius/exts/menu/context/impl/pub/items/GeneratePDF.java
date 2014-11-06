@@ -31,6 +31,7 @@ import cz.incad.Kramerius.exts.menu.context.impl.AbstractContextMenuItem;
 import cz.incad.Kramerius.exts.menu.context.impl.pub.PublicContextMenuItem;
 import cz.incad.Kramerius.exts.menu.context.impl.utils.MenuMimeTypesUtils;
 import cz.incad.kramerius.FedoraAccess;
+import cz.incad.kramerius.security.SecuredActions;
 import cz.incad.kramerius.utils.conf.KConfiguration;
 
 /**
@@ -53,7 +54,8 @@ public class GeneratePDF extends AbstractContextMenuItem implements PublicContex
 
     @Override
     public boolean isRenderable() {
-        return super.isRenderable() && isEnabledForMimeType();
+        boolean userAllowed = this.hasUserAllowedAction(SecuredActions.SHOW_GENERATE_PDF_MENU.getFormalName());
+        return userAllowed && super.isRenderable() && isEnabledForMimeType();
     }
 
     public boolean isEnabledForMimeType() {
