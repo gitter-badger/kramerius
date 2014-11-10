@@ -2,7 +2,7 @@ FROM debian:wheezy
 
 MAINTAINER Martin Rumanek <martin@rumanek.cz>
 
-ENV REFRESHED_AT 2014-09-15
+ENV REFRESHED_AT 2014-11-11
 
 ## install packages
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
@@ -15,8 +15,10 @@ apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod
 RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.56/bin/apache-tomcat-7.0.56.tar.gz -O /tmp/tomcat.tar.gz && \
     wget --no-verbose http://downloads.sourceforge.net/fedora-commons/fcrepo-installer-3.6.2.jar -O /tmp/fedora-install.jar && \
     wget --no-verbose https://kramerius.googlecode.com/files/installation-4.8.zip -O /tmp/installation-4.8.zip && \
-    wget --no-verbose http://dl.dropbox.com/s/m1zdvcgpp82l1js/kramerius.tar -O /tmp/kramerius.tar && \
-    tar xf /tmp/kramerius.tar -C /tmp/
+    wget --no-verbose https://www.dropbox.com/s/74z6mvb015sj8ky/kramerius.tar?dl=0 -O /tmp/kramerius.tar && \
+    wget --no-verbose https://github.com/ceskaexpedice/kramerius/releases/download/v5.0.0/editors.zip -O /tmp/editors.zip && \
+    tar xf /tmp/kramerius.tar -C /tmp/ && \
+    unzip /tmp/editors.zip -d /tmp/
 
 # postgres
 RUN sed -i 's/local   all             all                                     peer/local   all             all                                     md5/' \
@@ -39,13 +41,17 @@ ENV FEDORA_HOME /home/kramerius/fedora
 ADD fedora-install.properties /home/kramerius/fedora-install.properties
 RUN java -jar /tmp/fedora-install.jar /home/kramerius/fedora-install.properties
 
+USER root
 # install kramerius
-RUN cp /tmp/kramerius/*.war  $CATALINA_HOME/webapps/ && \
-    cp /tmp/kramerius/*.jar  $CATALINA_HOME/lib/
+RUN md5sum /tmp/kramerius.tar > /home/kramerius/md5sum && \
+    mv /tmp/editors/editor.war  $CATALINA_HOME/webapps/editor.war && \
+    mv /tmp/editors/rightseditor.war  $CATALINA_HOME/webapps/rightseditor.war && \
+    mv /tmp/kramerius/search.war  $CATALINA_HOME/webapps/search.war && \
+    mv /tmp/kramerius/*.jar  $CATALINA_HOME/lib/ && \
+    chown -R kramerius:kramerius $CATALINA_HOME/webapps/ $CATALINA_HOME/lib/ 
 
 
 # sleep until tomcat finish starting up (TODO)
-USER root
 RUN /etc/init.d/postgresql start; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh"; sleep 360; \
     /etc/init.d/postgresql stop
 
