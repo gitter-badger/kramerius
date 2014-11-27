@@ -2,7 +2,7 @@ FROM debian:wheezy
 
 MAINTAINER Martin Rumanek <martin@rumanek.cz>
 
-ENV REFRESHED_AT 2014-08-06
+ENV REFRESHED_AT 2014-11-29
 
 ## install packages
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
@@ -12,22 +12,18 @@ apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod
 
 
 # download binaries
-RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.55/bin/apache-tomcat-7.0.55.tar.gz -O /tmp/tomcat.tar.gz && \
-    wget --no-verbose http://sourceforge.net/projects/fedora-commons/files/fedora/3.7.0/fcrepo-installer-3.7.0.jar/download -O /tmp/fedora-install.jar && \
-    wget --no-verbose https://kramerius.googlecode.com/files/installation-4.8.zip -O /tmp/installation-4.8.zip && \
-    mkdir /tmp/kramerius && \
-    wget --no-verbose http://dl.dropbox.com/s/wboa23m1bd7zonx/search.war -O /tmp/kramerius/search.war && \
-    wget --no-verbose http://d.dropbox.com/s/5xptx637glqqto8/security-core.jar -O /tmp/kramerius/security-core.jar && \
-    wget --no-verbose https://www.dropbox.com/s/n5f0yqmq30gnm8k/rightseditor.war -O /tmp/kramerius/rightseditor.war
+RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.57/bin/apache-tomcat-7.0.57.tar.gz -O /tmp/tomcat.tar.gz && \
+    wget --no-verbose http://downloads.sourceforge.net/fedora-commons/fcrepo-installer-3.6.2.jar -O /tmp/fedora-install.jar && \
+    wget --no-verbose https://kramerius.googlecode.com/files/installation-4.8.zip -O /tmp/installation-4.8.zip 
+
 
 # postgres
-RUN sed 's/local   all             all                                     peer/local   all             all                                     md5/' \
-  /etc/postgresql/9.1/main/pg_hba.conf > pg_hba.conf ; \
-    mv pg_hba.conf /etc/postgresql/9.1/main/pg_hba.conf ; \
+RUN sed -i 's/local   all             all                                     peer/local   all             all                                     md5/' \
+  /etc/postgresql/9.1/main/pg_hba.conf && \
   /etc/init.d/postgresql start ; su -l postgres -c "createuser fedoraAdmin --no-superuser --no-createdb --no-createrole; \
  createdb fedora3 --owner=fedoraAdmin; createdb riTriples --owner=fedoraAdmin; \
  psql --command \"alter user \\\"fedoraAdmin\\\" with password 'fedoraAdmin';\" "; \
- /etc/init.d/postgresql start
+ /etc/init.d/postgresql stop
 
 # install tomcat
 RUN adduser --disabled-password --gecos "" kramerius
@@ -64,7 +60,7 @@ RUN /home/kramerius/changeFedoraSettings.sh && \
 # context datasource, jdbc lib
 RUN wget --no-verbose http://jdbc.postgresql.org/download/postgresql-9.1-903.jdbc4.jar -O /home/kramerius/tomcat/lib/postgresql-9.1-903.jdbc4.jar
 
-ENV JAVA_OPTS -Djava.awt.headless=true -Dfile.encoding=UTF8 -XX:MaxPermSize=256m -Xms1024m -Xmx3072m 
+ENV JAVA_OPTS -Djava.awt.headless=true -Dfile.encoding=UTF8 -XX:MaxPermSize=256m -Xms1024m -Xmx3072m
 
 # APACHE
 USER root
@@ -82,5 +78,5 @@ ADD parser.sh /parser.sh
 
 RUN sed "s/data_directory = '\/var\/lib\/postgresql\/9.1\/main'/data_directory = '\/kramerius-data\/postgres-data\/main'/" /etc/postgresql/9.1/main/postgresql.conf > /tmp/postgresql.conf
 RUN mv /tmp/postgresql.conf /etc/postgresql/9.1/main/postgresql.conf
-RUN mv /home/kramerius/fedora/data /home/kramerius/fedora/dataDefault && ln -s  /kramerius-data/fedora-data /home/kramerius/fedora/data 
+RUN mv /home/kramerius/fedora/data /home/kramerius/fedora/dataDefault && ln -s  /kramerius-data/fedora-data /home/kramerius/fedora/data
 
