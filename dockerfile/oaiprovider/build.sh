@@ -1,2 +1,2 @@
 #!/bin/sh
-docker build -t oaiprovider .
+docker build -t moravianlibrary/oaiprovider .

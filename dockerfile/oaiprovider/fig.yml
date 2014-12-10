@@ -1,0 +1,21 @@
+oaiprovider:
+  image: moravianlibrary/oaiprovider
+  ports:
+    - "8080:8080"
+  environment:
+    - FEDORA_URL=http://kramerius/fedora"
+    - FEDORA_USER=*
+    - FEDORA_PASS=*
+    - FEDORA_JDBC_URL=jdbc:postgresql://kramerius/riTriples
+    - FEDORA_JDBC_USER=*
+    - FEDORA_JDBC_PASS=*
+  links:
+    - oaiproviderPostgres:oaiproviderPostgres
+oaiproviderPostgres:
+  image: "postgres:9.3"
+  environment:
+    - POSTGRES_USER=proai
+    - POSTGRES_PASSWORD=proai
+  ports:
+    - "5483:5483"
+
