@@ -66,7 +66,7 @@
 
 .da_bubble{
     position: absolute;
-    background:#ef6001;
+    background:#96c832;
     color:white;
     border: 1px solid #333333;
     left:-100px;
@@ -80,7 +80,20 @@
     
 }
 
-
+#da-inputs{
+  width:100%;
+  text-align:left;
+  padding:5px 4px;
+  z-index:3;
+  font-size: 0.9em;
+  height:25px;
+}
+#da-inputs input{
+  border: 1px solid #333333;
+  z-index:3 !important;
+  position:relative;
+  width: 70px;
+}
 
 .clear{
     float:none;
@@ -137,10 +150,10 @@
     z-index:4;
 }
 #resizable-top{
-    border-bottom: 1px solid #004400;
+    border-bottom: 1px solid #96c832;
 }
 #resizable-bottom{
-    border-top: 1px solid #004400;
+    border-top: 1px solid #96c832;
 }
 .da_resize{
     top: -20px;

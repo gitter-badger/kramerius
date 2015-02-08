@@ -99,11 +99,8 @@
         $('#tv_container_row>td>div').live('click', function(){
             var id = $(this).attr('id').substring(3);
             initView = false;
-            if(window.location.hash != id){
-                window.location.hash = id;
-            }
-            //selectThumb(id);
-            //$(".viewer").trigger('viewChanged', [id]);
+            selectThumb(id);
+            $(".viewer").trigger('viewChanged', [id]);
         });
         $('#tv_container_row>td>input').live('click', function(){
             var id = $(this).prev().attr('id').substring(3);

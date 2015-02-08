@@ -3,17 +3,17 @@
 
 
 .autocomplete_input{
-    border:1px solid silver;
+    border:1px solid #96c832;
 }
 
 
 .autocomplete {
-    border:1px solid silver;
+    border:1px solid #96c832;
     padding:7px;
     padding-left:1px;
     cursor:pointer;
     overflow:auto;
-    height:440px;
+    height:500px;
     position:relative;
 }
 .autocomplete div{
@@ -29,7 +29,7 @@
 
 .letters .sel{
     background: url('../img/sel_letter.png') no-repeat;
-    border-top: #e66c00 solid 1px;
+    border-top: #96c832 solid 1px;
     
 }
 
@@ -46,21 +46,22 @@
 }
 
 .letters_r .sel{
-    border-left: #e66c00 solid 1px;
+    border-left: #96c832 solid 1px;
     
 }
 
 .letters_l .sel{
-    border-right: #e66c00 solid 1px;
+    border-right: #96c832 solid 1px;
     
 }
 
 .letters .sel{
     background: url('../img/sel_letter.png') no-repeat;
-    border-top: #e66c00 solid 1px;
+    border-top: #96c832 solid 1px;
     
 }
 .letters a{
-    color:#e66c00;
+    color:#96c832;
     text-align: center;
+    font-weight:bold;
 }
