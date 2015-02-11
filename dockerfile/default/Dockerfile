@@ -2,7 +2,7 @@ FROM debian:wheezy
 
 MAINTAINER Martin Rumanek <martin@rumanek.cz>
 
-ENV REFRESHED_AT 2014-12-20
+ENV REFRESHED_AT 2014-02-12
 
 ## install packages
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
@@ -12,7 +12,7 @@ apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod
 
 
 # download binaries
-RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.57/bin/apache-tomcat-7.0.57.tar.gz -O /tmp/tomcat.tar.gz && \
+RUN wget --no-verbose http://mirror.hosting90.cz/apache/tomcat/tomcat-7/v7.0.59/bin/apache-tomcat-7.0.59.tar.gz  -O /tmp/tomcat.tar.gz && \
     wget --no-verbose http://downloads.sourceforge.net/fedora-commons/fcrepo-installer-3.6.2.jar -O /tmp/fedora-install.jar && \
     wget --no-verbose https://github.com/ceskaexpedice/kramerius/releases/download/v5.0.0/installation-4.8.zip -O /tmp/installation-4.8.zip && \
     wget --no-verbose https://github.com/ceskaexpedice/kramerius/releases/download/v5.0.2/Kramerius-5.0.2.zip -O /tmp/kramerius.zip && \
