@@ -12,13 +12,10 @@ apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod
 
 
 # download binaries
-RUN wget --no-verbose http://apache.mirrors.lucidnetworks.net/tomcat/tomcat-7/v7.0.55/bin/apache-tomcat-7.0.55.tar.gz -O /tmp/tomcat.tar.gz && \
+RUN wget --no-verbose http://mirror.hosting90.cz/apache/tomcat/tomcat-8/v8.0.18/bin/apache-tomcat-8.0.18.tar.gz -O /tmp/tomcat.tar.gz && \
     wget --no-verbose http://sourceforge.net/projects/fedora-commons/files/fedora/3.5/fcrepo-installer-3.5.jar/download -O /tmp/fedora-install.jar && \
     wget --no-verbose https://kramerius.googlecode.com/files/installation-4.8.zip -O /tmp/installation-4.8.zip && \
-    mkdir /tmp/kramerius && \
-    wget --no-verbose http://dl.dropbox.com/s/wboa23m1bd7zonx/search.war -O /tmp/kramerius/search.war && \
-    wget --no-verbose http://d.dropbox.com/s/5xptx637glqqto8/security-core.jar -O /tmp/kramerius/security-core.jar && \
-    wget --no-verbose https://www.dropbox.com/s/n5f0yqmq30gnm8k/rightseditor.war -O /tmp/kramerius/rightseditor.war
+    mkdir /tmp/kramerius 
 
 RUN echo "test"
 # postgres
