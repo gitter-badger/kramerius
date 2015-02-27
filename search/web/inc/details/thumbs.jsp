@@ -99,8 +99,18 @@
         $('#tv_container_row>td>div').live('click', function(){
             var id = $(this).attr('id').substring(3);
             initView = false;
-            selectThumb(id);
-            $(".viewer").trigger('viewChanged', [id]);
+            if(window.location.hash != id){
+                window.location.hash = id;
+            }
+            //selectThumb(id);
+            //$(".viewer").trigger('viewChanged', [id]);
+        });
+        $('#tv_container_row>td>input').live('click', function(){
+            var id = $(this).prev().attr('id').substring(3);
+            $(jq(id)).find("input").attr("checked", $(this).is(":checked"));
+            if($('#rightMenuBox').tabs( "option", "selected" ) ===2){
+                renderSelection();
+            }
         });
         $('#tv_container').bind('scroll', function(event){
             checkThumbsVisibility();
@@ -113,9 +123,12 @@
     function updateThumbs(id){
         $('#tv_container_row>td').remove();
         for(var i=0; i<k4Settings.activeUuids.length; i++){
-            $('#tv_container_row').append('<td><div id="tv_'+k4Settings.activeUuids[i]+'" class="t inactive"><img src="img/empty.gif" />'+
-                '<div id="dost_'+k4Settings.activeUuids[i]+'" style="position:absolute;left:2px;top:2px;"><img src="img/empty.gif" /></div></div>'+
-                '</td>');
+            var title = $(jq(k4Settings.activeUuids[i])).find("label").text().replaceAll("\n", " ").replace(/\s+/g," ");
+            $('#tv_container_row').append('<td style="position:relative;" ><div id="tv_'+
+                    k4Settings.activeUuids[i]+'" class="t inactive" title="'+title+'"><img src="img/empty.gif" />'+
+                '<div id="dost_'+k4Settings.activeUuids[i]+
+                '" style="position:absolute;left:2px;top:2px;"><img src="img/empty.gif" /></div>'+
+                '</div><input type="checkbox" style="position:absolute;right:1px;top:1px;" /></td>');
         }
         selectThumb(id);
         $('#tv_container_table').show();
@@ -157,12 +170,10 @@
     }
     
     function setThumbsPath(){
-        //var p = '<span class="ui-icon ui-icon-triangle-1-e folder">folder</span>' + $(jq(k4Settings.selectedPath[0])+">a").html();
         var p = '';
         for(var i=0; i<k4Settings.selectedPathTexts.length; i++){
             var maxText = k4Settings.selectedPathTexts[i].toString();
             maxText = maxText.replaceAll("&nbsp;", " ").replace(/\n/g, "").trim().replace(/\s{2,}/g,' ');
-            //alert(maxText.length + ": " + maxText);
             if (maxText.length > 40){
                 maxText = maxText.substring(0,40) + "...";
             } 

@@ -34,7 +34,6 @@ import com.google.inject.Provider;
 import com.google.inject.name.Named;
 
 import cz.incad.Kramerius.backend.guice.GuiceServlet;
-import cz.incad.Kramerius.utils.ALTOUtils;
 import cz.incad.kramerius.AbstractObjectPath;
 import cz.incad.kramerius.FedoraAccess;
 import cz.incad.kramerius.ObjectPidsPath;
@@ -49,6 +48,8 @@ import cz.incad.kramerius.security.SecurityException;
 import cz.incad.kramerius.security.SpecialObjects;
 import cz.incad.kramerius.security.User;
 import cz.incad.kramerius.security.impl.http.AbstractLoggedUserProvider;
+import cz.incad.kramerius.utils.ALTOUtils;
+import cz.incad.kramerius.utils.ALTOUtils.AltoDisected;
 import cz.incad.kramerius.utils.FedoraUtils;
 import cz.incad.kramerius.utils.IOUtils;
 import cz.incad.kramerius.utils.RelsExtHelper;
@@ -202,13 +203,11 @@ public class ViewInfoServlet extends GuiceServlet {
                     map.put("hasAlto", "false");
                 }
                 
-                resp.setContentType("text/plain");
+                resp.setContentType("application/json; charset=utf-8");
                 StringTemplate template = ST_GROUP.getInstanceOf("viewinfo");
                 template.setAttribute("data", map);
                 
                 resp.getWriter().println(template.toString());
-                
-                
             }
         } catch (XPathExpressionException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -228,8 +227,8 @@ public class ViewInfoServlet extends GuiceServlet {
             if (req.getParameterMap().containsKey("q")) {
                 String par = req.getParameter("q");
                 Document parsed = getAltoDocument(imagePid);
-                Map<String, Map<String, Double>> disected = ALTOUtils.disectAlto(par, parsed);
-                map.put("alto", disected);
+                AltoDisected disected = ALTOUtils.disectAlto(par, parsed);
+                map.put("alto", disected.toJSON().toString());
                 return true;
             } else return false;
         } catch (Exception e) {

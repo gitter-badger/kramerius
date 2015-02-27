@@ -17,9 +17,9 @@
 <%--
 <view:object name="searchParams" clz="cz.incad.Kramerius.views.inc.SearchParamsViews"></view:object>
 --%>
-
+<view:kconfig var="collapsed_conf" key="search.query.collapsed" defaultValue="true" />
 <c:catch var="searchException">
-    <c:set var="isCollapsed" value="${!isHome && (param.collapsed != 'false')}" scope="request"  />
+    <c:set var="isCollapsed" value="${!isHome && (param.collapsed != 'false') && (collapsed_conf == 'true')}" scope="request"  />
     <c:set var="filterByType" value="false" scope="request" />
     <c:set var="rowsdefault" value="${searchParams.searchResultsRows}" scope="request" />
     <c:set var="rows" value="${rowsdefault}" scope="request" />
@@ -35,10 +35,10 @@
             <c:param name="q" value="*:*" />
         </c:when>
         <c:when test="${param.q != null}" >
-            <c:if test="${fn:containsIgnoreCase(param.q, '*')}" >
-                
-            </c:if>
             <c:choose>
+                <c:when test="${fn:startsWith(param.q, 'SOLR:')}" >
+                    <c:param name="q" value="${fn:substring(param.q, 5, -1)}" />
+                </c:when>
                 <c:when test="${param.asis}">
                     <c:param name="q" value="${param.q}" />
                 </c:when>

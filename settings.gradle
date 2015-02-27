@@ -16,10 +16,11 @@ include	'import-jaxb-srwdc'
 include	'import-mets' 
 	
 include	'indexer'
+include	'k5indexer'
 include	'static-export'
 include	'rest'
 include	'search' 
-
+include 'client'
 	
 
 // filter property -DremoveProjs=projectA,projectB,..

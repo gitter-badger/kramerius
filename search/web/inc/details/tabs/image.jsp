@@ -84,7 +84,7 @@ function onLoadPlainImage() {
     <div id="container"  class="view_div"  style="display:none;  height: 512px;">
     </div>
     
-    <div id="ol-container" style="display:none; position: relative; top: 3px;">
+    <div id="ol-container" style="height: 100%; display:none; position: relative; top: 3px;">
     
     
      <div id="ol-wrapper-buttons" class="buttons" style="z-index: 1002;position:relative; top:7px; left:10px;">
@@ -98,7 +98,7 @@ function onLoadPlainImage() {
 	   </c:if>
       </div>
    
-    <div id="ol-wrapper" style="height: 512px; position: relative; top:-25px;">
+    <div id="ol-wrapper" style="height: 100%; position: relative; top:-25px;">
         <div id="ol-image" style="width: 100%; height: 100%"></div>
     </div>
     
@@ -146,7 +146,7 @@ function onLoadPlainImage() {
     $(document).ready(function(){
         $(".buttons>a").button();
         $('#bigThumbZone.viewer').bind('viewChanged', function(event, id){
-            if (console) console.log('viewChanged event with id = '+id);
+            if (console) console.log('viewChanged event');
             viewChanged(id);
         });
         $('#bigThumbZone.viewer').bind('viewReady', function(event, viewerOptions){
@@ -167,8 +167,8 @@ function onLoadPlainImage() {
 	}
 	var url ='nimg/IMG_FULL/'+viewerOptions.uuid+'#page='+page;
     
-	var pdfWindow = window.open(url, '_blank');
-	pdfWindow.focus();
+    var pdfWindow = window.open(url, '_blank');
+        pdfWindow.focus();
     }
     
 
@@ -186,7 +186,6 @@ function onLoadPlainImage() {
 
         function(index,item) {
             if (item==contentToShow) {
-                if (console) console.log(" ok ");
                 $(item).show();
             } else {
                 $(item).hide();
@@ -291,13 +290,11 @@ function onLoadPlainImage() {
         displayImageContainer("#loadingDeepZoomImage");
         var uuid = id.split('_')[1];
         var viewInfoUrl = "viewInfo?uuid="+uuid+(altoSearchQuery == null ? "" : "&q="+altoSearchQuery);
-        if (console) console.log("requesting view info   "+viewInfoUrl);
         $.ajax({
             url:viewInfoUrl,
             complete:function(req,textStatus) {
                               
                 if ((req.status==200) || (req.status==304)) {
-                    if (console) console.log("returning viewerOptions:"+viewerOptions);
                     viewerOptions = eval('(' + req.responseText + ')');
                     viewerOptions.uuid = uuid;
                     viewerOptions.fullid = id;
@@ -423,7 +420,6 @@ function onLoadPlainImage() {
     }
     
     function checkArrows(){
-        if (console) console.log("activepids: "+k4Settings.activeUuids);
         if(k4Settings.activeUuids[0]==k4Settings.activeUuid){
             new ImageButtons().hidePrev();
         }else{

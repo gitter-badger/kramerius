@@ -17,6 +17,7 @@
 package cz.incad.kramerius.impl;
 
 import com.google.inject.Inject;
+
 import cz.incad.kramerius.*;
 import cz.incad.kramerius.statistics.StatisticsAccessLog;
 import cz.incad.kramerius.utils.FedoraUtils;
@@ -26,6 +27,7 @@ import cz.incad.kramerius.utils.XMLUtils;
 import cz.incad.kramerius.utils.conf.KConfiguration;
 import cz.incad.kramerius.utils.pid.LexerException;
 import cz.incad.kramerius.utils.pid.PIDParser;
+
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
@@ -37,9 +39,11 @@ import javax.annotation.Nullable;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.BindingProvider;
 import javax.xml.xpath.*;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.logging.Level;
@@ -333,7 +337,10 @@ public class FedoraAccessImpl implements FedoraAccess {
     public InputStream getSmallThumbnail(String pid) throws IOException {
         try {
             pid = makeSureObjectPid(pid);
-            HttpURLConnection con = (HttpURLConnection) openConnection(getThumbnailFromFedora(configuration, makeSureObjectPid(pid)), configuration.getFedoraUser(), configuration.getFedoraPass());
+            HttpURLConnection con = referencedDataStream(pid, IMG_THUMB_STREAM);
+            if (con == null) {
+                con = (HttpURLConnection) openConnection(getThumbnailFromFedora(configuration, makeSureObjectPid(pid)), configuration.getFedoraUser(), configuration.getFedoraPass());
+            }
             InputStream thumbInputStream = con.getInputStream();
             return thumbInputStream;
         } catch (LexerException e) {
@@ -384,7 +391,11 @@ public class FedoraAccessImpl implements FedoraAccess {
                         LOGGER.log(Level.SEVERE, e.getMessage(),e);
                 }
             }
-            HttpURLConnection con = (HttpURLConnection) openConnection(getFedoraStreamPath(configuration, makeSureObjectPid(pid), IMG_FULL_STREAM), configuration.getFedoraUser(), configuration.getFedoraPass());
+
+            HttpURLConnection con = referencedDataStream(pid, IMG_FULL_STREAM);
+            if (con == null) {
+                con = (HttpURLConnection) openConnection(getFedoraStreamPath(configuration, makeSureObjectPid(pid), IMG_FULL_STREAM), configuration.getFedoraUser(), configuration.getFedoraPass());
+            }
             con.connect();
             if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 InputStream thumbInputStream = con.getInputStream();
@@ -867,19 +878,7 @@ public class FedoraAccessImpl implements FedoraAccess {
                 }
             }
             
-            HttpURLConnection con = null;
-            Document datastreamProfile = this.getStreamProfile(pid, datastreamName);
-            Element elm = XMLUtils.findElement(datastreamProfile.getDocumentElement(), "dsControlGroup", FedoraNamespaces.FEDORA_MANAGEMENT_NAMESPACE_URI);
-            if (elm != null) {
-                // Referenced stream
-                if (elm.getTextContent().trim().equals("E")) {
-                    Element dsLocation = XMLUtils.findElement(datastreamProfile.getDocumentElement(), "dsLocation", FedoraNamespaces.FEDORA_MANAGEMENT_NAMESPACE_URI);
-                    if (dsLocation != null) {
-                        // no user, no pass
-                        con = (HttpURLConnection) openConnection(dsLocation.getTextContent().trim(), "", "");
-                    }
-                }
-            }
+            HttpURLConnection con = referencedDataStream(pid, datastreamName);
             if (con == null) {
                 String streamLocation =  configuration.getFedoraHost() + "/get/" + pid + "/" + datastreamName;
                 con = (HttpURLConnection) openConnection(streamLocation, configuration.getFedoraUser(), configuration.getFedoraPass());
@@ -897,6 +896,27 @@ public class FedoraAccessImpl implements FedoraAccess {
         } catch (LexerException e) {
             throw new IOException(e);
         }
+    }
+
+    private HttpURLConnection referencedDataStream(String pid,
+            String datastreamName) throws IOException, MalformedURLException {
+        HttpURLConnection con = null;
+        Document datastreamProfile = this.getStreamProfile(pid, datastreamName);
+        Element elm = XMLUtils.findElement(datastreamProfile.getDocumentElement(), "dsControlGroup", FedoraNamespaces.FEDORA_MANAGEMENT_NAMESPACE_URI);
+        if (elm != null) {
+            // Referenced stream
+            if (elm.getTextContent().trim().equals("E")) {
+                Element dsLocation = XMLUtils.findElement(datastreamProfile.getDocumentElement(), "dsLocation", FedoraNamespaces.FEDORA_MANAGEMENT_NAMESPACE_URI);
+                if (dsLocation != null) {
+                    // no user, no pass
+                    URLConnection directConnection = openConnection(dsLocation.getTextContent().trim(), "", "");
+                    if (directConnection instanceof HttpURLConnection) {
+                        con = (HttpURLConnection) directConnection;
+                    } 
+                }
+            }
+        }
+        return con;
     }
 
     @Override

@@ -71,7 +71,7 @@
     }
 
 </style>
-<div id="kkk"></div>
+
 <c:set var="class_viewable"><c:if test="${viewable=='true' && root_pid==param.pid}">viewable</c:if></c:set>
 <c:url var="url" value="${kconfig.applicationURL}/inc/details/treeNodeInfo.jsp" >
     <c:param name="pid" value="${root_pid}" />
@@ -95,7 +95,7 @@
         <ul id="item_tree" class="viewer">
             <li id="${root_model}"><span class="ui-icon ui-icon-triangle-1-e folder " >folder</span>
                 <a href="#" class="model"><fmt:message bundle="${lctx}">fedora.model.${root_model}</fmt:message></a>
-                <ul><li id="${root_model}_${root_pid}" class="${class_viewable}"><span class="ui-icon ui-icon-triangle-1-e folder " >folder</span>
+                <ul><li id="${root_model}_${root_pid}" class="${class_viewable} ${dostupnost}"><span class="ui-icon ui-icon-triangle-1-e folder " >folder</span>
                         <div style="float:left;"><input type="checkbox"  /></div>
                 <div style="float:left;"><a href="#" class="label">${infoa}</a></div></li></ul>
             </li>
@@ -134,21 +134,17 @@
                 nodeOpen(id);
                 event.stopPropagation();
             });
+            
+            $('#item_tree li>div>input').live('click', function(){
+                var id = "tv_" + $(this).parent().parent().attr('id');
+                $(jq(id)).next("input").attr("checked", $(this).is(":checked"));
+            });
             $('#rightMenuBox').tabs({
                 show: function(event, ui){
                     var tab = ui.tab.toString().split('#')[1];
                     var t = "";
                     if (tab=="contextMenu"){
-                        $('#item_tree input:checked').each(function(){
-                            var id = $(this).parent().parent().attr("id");
-                            t += '<li id="cm_' + id + '">';
-                            t += '<span class="ui-icon ui-icon-triangle-1-e folder " >folder</span>';
-                            t += '<label>'+$(jq(id)+">div>a>label").html()+'</label></li>';
-                            //t += '<li><span class="ui-icon ui-icon-triangle-1-e folder " >folder</span>'+$(jq(id)+">a").html()+'</li>';
-                        });
-                        $('#context_items_selection').html(t);
-                        //t = '<li><span class="ui-icon ui-icon-triangle-1-e folder " >folder</span>'+$(jq(k4Settings.activeUuid)+">a").html()+'</li>';
-                        //$('#context_items_active').html(t);
+                        renderSelection();
                     }else{
                         if($('#item_tree input:checked').length>0){
                             $('#item_tree input:checked').each(function(){
@@ -191,6 +187,18 @@
         });
         var cur = 1;
         var initView = true;
+        
+        function renderSelection(){
+            var t="";
+            $('#item_tree input:checked').each(function(){
+                var id = $(this).parent().parent().attr("id");
+                t += '<li id="cm_' + id + '">';
+                t += '<span class="ui-icon ui-icon-triangle-1-e folder " >folder</span>';
+                t += '<label>'+$(jq(id)+">div>a>label").html()+'</label></li>';
+                //t += '<li><span class="ui-icon ui-icon-triangle-1-e folder " >folder</span>'+$(jq(id)+">a").html()+'</li>';
+            });
+            $('#context_items_selection').html(t);
+        }
 
         function loadInitNodes(){
             var id;
@@ -242,7 +250,6 @@
                         } 
                     }
                 }
-                //alert(id);
                 loadingInitNodes= false;
                 if(id){
                     showNode(id);
@@ -277,16 +284,12 @@
         }
 
         function nodeClick(id){
-            
-            //alert(id+" -> " + $(jq(id)).hasClass('viewable'));
             initView = false;
             if($(jq(id)).hasClass('viewable')){
-                selectNodeView(id);
                 nodeOpen(id);
                 if(window.location.hash != id){
                     window.location.hash = id;
                 }
-                $(".viewer").trigger('viewChanged', [id]);
             }else{
                 nodeOpen(id);
             }
@@ -319,22 +322,14 @@
         }
 
         function selectNodeView(id){
-            var currentLevel = k4Settings.activePidPath.split("_")[0].split("-").length;
-            var newLevel = id.split("_")[0].split("-").length;
-            var changeLevel = currentLevel != newLevel;
-            var fire = false;
-            if(!$(jq(id)).parent().parent().hasClass('sel') ||
-                ($(jq(id)).hasClass('viewable') && changeLevel)){
-                fire = true;
-            }
+            
             $("#item_tree li>div>a").removeClass('sel');
             $("#item_tree li").removeClass('sel');
             $("#item_tree li>div>a").removeClass('ui-state-active');
             $("#item_tree li").removeClass('ui-state-active');
             highLigthNode(id);
-            if(fire){
-                setActiveUuids(id);
-            }
+            setActiveUuids(id);
+                
             setSelectedPath(id);
             
         }
@@ -342,12 +337,13 @@
         function checkHashChanged(e){
             var id =  k4Settings.activePidPath;
             var newid =  window.location.hash.toString().substring(1);
-            //alert(newid + " \n" + id);
             if(id != newid){
                 if(newid.length==0){
                     loadInitNodes();
                 }
-                nodeClick(newid);
+                selectNodeView(id);
+                //nodeClick(newid);
+                $(".viewer").trigger('viewChanged', [newid]);
             }
         }
 
@@ -366,31 +362,45 @@
         var autoLoaded = [];
         function loadTreeNode(id){
             if(autoLoaded[id]){
+                renderNode(id, autoLoaded[id]);
                 return;
             }
-            autoLoaded[id] = true;
             var pid = id.split('_')[1];
             
             var path = id.split('_')[0];
             var url = 'inc/details/treeNode.jsp?pid=' + pid + '&model_path=' + path;
             $.get(url, function(data){
                 var d = trim10(data);
-                if(d.length>0){
-                    $(jq(id)).append(d);
-                    if($(jq(id)+">ul").html()==null || $(jq(id)+">ul").html().trim().length==0){
-                        $(jq(id)+">ul").hide();
-                    }
-                }else{
-                    $(jq(id)+">span.folder").removeClass();
-                }
-                if(loadingInitNodes){
-                    loadInitNodes();
-                }
+                autoLoaded[id] = d;
+                renderNode(id, d);
             });
+        }
+        
+        function renderNode(id, d){
+            if(d.length>0){
+                $(jq(id)).append(d);
+                if($(jq(id)+">ul").html()==null || $(jq(id)+">ul").html().trim().length==0){
+                    $(jq(id)+">ul").hide();
+                }
+            }else{
+                $(jq(id)+">span.folder").removeClass();
+            }
+            if(loadingInitNodes){
+                loadInitNodes();
+            }
         }
 
         function setActiveUuids(id){
+            var oldPidPath = k4Settings.activePidPath;
+            
             k4Settings.activePidPath = id;
+            
+            if(oldPidPath!== null && $(jq(id)).parent()[0] === $(jq(oldPidPath)).parent()[0]){
+                //jenom se zmenil pid, ale jsme na stejne vetvi
+                return;
+            }
+            
+        
             k4Settings.activeUuids = [];
             
             var i = 0;
