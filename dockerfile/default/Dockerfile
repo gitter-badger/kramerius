@@ -2,7 +2,7 @@ FROM debian:wheezy
 
 MAINTAINER Martin Rumanek <martin@rumanek.cz>
 
-ENV REFRESHED_AT 2014-02-12
+ENV REFRESHED_AT 2014-03-15
 
 ## install packages
 ENV PATH /usr/bin:/bin:/usr/sbin:/sbin
@@ -14,9 +14,9 @@ apt-get -y install wget openjdk-7-jre-headless postgresql apache2 libapache2-mod
 # download binaries
 RUN wget --no-verbose http://mirror.hosting90.cz/apache/tomcat/tomcat-7/v7.0.59/bin/apache-tomcat-7.0.59.tar.gz  -O /tmp/tomcat.tar.gz && \
     wget --no-verbose http://downloads.sourceforge.net/fedora-commons/fcrepo-installer-3.6.2.jar -O /tmp/fedora-install.jar && \
-    wget --no-verbose https://github.com/ceskaexpedice/kramerius/releases/download/v5.0.0/installation-4.8.zip -O /tmp/installation-4.8.zip && \
-    wget --no-verbose https://github.com/ceskaexpedice/kramerius/releases/download/v5.0.2/Kramerius-5.0.2.zip -O /tmp/kramerius.zip && \
-    wget --no-verbose https://github.com/ceskaexpedice/kramerius/releases/download/v5.0.0/editors.zip -O /tmp/editors.zip && \
+    wget --no-verbose https://github.com/ceskaexpedice/kramerius/releases/download/v5.1.0/Installation-5.1.zip -O /tmp/installation.zip && \
+    wget --no-verbose https://github.com/ceskaexpedice/kramerius/releases/download/v5.1.0/Core-5.1.0.zip -O /tmp/kramerius.zip && \
+    wget --no-verbose https://github.com/ceskaexpedice/kramerius/releases/download/v5.1.0/Editors-5.1.0.zip -O /tmp/editors.zip && \
     unzip /tmp/kramerius.zip -d /tmp/ && \
     unzip /tmp/editors.zip -d /tmp/
 
@@ -44,10 +44,10 @@ RUN java -jar /tmp/fedora-install.jar /home/kramerius/fedora-install.properties
 USER root
 # install kramerius
 RUN md5sum /tmp/kramerius.zip > /home/kramerius/md5sum && \
-    mv /tmp/editors/editor.war  $CATALINA_HOME/webapps/editor.war && \
-    mv /tmp/editors/rightseditor.war  $CATALINA_HOME/webapps/rightseditor.war && \
-    mv /tmp/Kramerius-5.0.2/search.war  $CATALINA_HOME/webapps/search.war && \
-    mv /tmp/Kramerius-5.0.2/*.jar  $CATALINA_HOME/lib/ && \
+    mv /tmp/Editors-5.1.0/editor.war  $CATALINA_HOME/webapps/editor.war && \
+    mv /tmp/Editors-5.1.0/rightseditor.war  $CATALINA_HOME/webapps/rightseditor.war && \
+    mv /tmp/Core-5.1.0/search.war  $CATALINA_HOME/webapps/search.war && \
+    mv /tmp/Core-5.1.0/*.jar  $CATALINA_HOME/lib/ && \
     chown -R kramerius:kramerius $CATALINA_HOME/webapps/ $CATALINA_HOME/lib/ 
 
 # sleep until tomcat finish starting up (TODO)
@@ -75,10 +75,10 @@ ENV JAAS_CONFIG /home/kramerius/fedora/server/config/jaas.conf
 
 # SOLR
 USER root
-RUN unzip /tmp/installation-4.8.zip -d /tmp/
+RUN unzip /tmp/installation.zip -d /tmp/
 USER kramerius
-RUN cp /tmp/installation-4.8/solr.war /home/kramerius/tomcat/webapps/solr.war && \
-    cp -r /tmp/installation-4.8/solr /home/kramerius/
+RUN cp /tmp/Installation-5.1/solr.war /home/kramerius/tomcat/webapps/solr.war && \
+    cp -r /tmp/Installation-5.1/solr /home/kramerius/
 
 ENV SOLR_HOME /home/kramerius/solr
 ENV JAVA_OPTS -Djava.awt.headless=true -Dfile.encoding=UTF8 -XX:MaxPermSize=256m -Xms1024m -Xmx3072m  -Djava.security.auth.login.config=$JAAS_CONFIG -Dsolr.solr.home=$SOLR_HOME
@@ -93,8 +93,6 @@ ADD fedoraIngestModels.sh /fedoraIngestModels.sh
 RUN /etc/init.d/postgresql start; su -l kramerius -c "/home/kramerius/tomcat/bin/startup.sh"; \
     sleep 90; /fedoraIngestModels.sh; /etc/init.d/postgresql stop
 
-RUN wget --no-verbose https://dl.dropbox.com/s/7k24kkvqf1pafec/iipimage-jp2-amd64.deb -O /tmp/iipimage-jp2-amd64.deb
-RUN dpkg -i /tmp/iipimage-jp2-amd64.deb 
 
 #DEFAULT DATA
 ADD example-foxml.tar /tmp/

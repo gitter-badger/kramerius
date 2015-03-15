@@ -1,0 +1,9 @@
+kramerius:
+  build: .
+  environment:
+    - VIRTUAL_HOST=docker.mzk.cz
+  volumes:
+    - /kramerius-data/devel:/kramerius-data/
+  ports:
+    - "80:80"
+  command: /init.sh
