@@ -1,4 +1,4 @@
-body{
+body {
     font-family:Verdana, Arial, Helvetica, Tahoma;
     font-size:11px;
     color:#0B0F0A;
@@ -14,10 +14,12 @@ form{
     border: 1px solid #96c832;
 }
 #header{
-    background: url("../img/header.png") no-repeat 0 0 #504b55;
     border-bottom: 2px solid #96c832;
-    height:75px;
+    height:45px;
+    background-color:rgba(0, 30, 60, 0.9);
 }
+
+
 #main_menu{
     float:right;
     vertical-align:bottom;
@@ -35,7 +37,7 @@ form{
     bottom:0;
     position:absolute;
     right:0;
-    width:1000px;
+    width:500px;
 }
 #main_menu_in a{
     float:right;
@@ -94,7 +96,7 @@ input.checkbox {
     color:#ffffff;
     background: url('../img/search_orange.png') no-repeat scroll 0 0 transparent;
     width:35px;
-    height:36px;
+    height:32px;
     cursor:pointer;
     border:none;
 }
@@ -154,6 +156,9 @@ a.image:hover {
 
 /* home */
 
+#intro{
+    padding: 0;
+}
 #intro>div.ui-tabs-panel{
     padding: 3px;
 }
@@ -167,10 +172,6 @@ a.image:hover {
     font-size:16px;
     margin:50px;
 }
-
-/* #dt_home>div>span{
-    display:none;
-}*/
 #dt_home{
     font-size:16px;
     font-weight:bold;
@@ -457,7 +458,7 @@ div.search_result *{
         font-weight: bold;
         position:absolute;
         right: 10px;
-        top: 5px;
+        top: 0px;
     }  
 
     #current_vc>span{
@@ -494,6 +495,7 @@ div.search_result *{
     left:7px;
     top:7px;
 }
+
 /* Casova osa */
 
 #canvasda{
